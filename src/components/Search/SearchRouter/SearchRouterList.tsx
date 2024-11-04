@@ -174,6 +174,7 @@ function SearchRouterList(
 
     const styledRecentReports = recentReports.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
     sections.push({title: translate('search.recentChats'), data: styledRecentReports});
+    const initiallyFocusedOptionKey = styledRecentReports.at(0)?.keyForList;
 
     const onSelectRow = useCallback(
         (item: OptionData | SearchQueryItem) => {
@@ -238,6 +239,7 @@ function SearchRouterList(
             sectionTitleStyles={styles.mhn2}
             shouldSingleExecuteRowSelect
             onArrowFocus={onArrowFocus}
+            initiallyFocusedOptionKey={initiallyFocusedOptionKey}
         />
     );
 }
