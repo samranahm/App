@@ -10,7 +10,7 @@
     "configure-mapbox": "./scripts/setup-mapbox-sdk-walkthrough.sh",
     "setupNewDotWebForEmulators": "./scripts/setup-newdot-web-emulators.sh",
     "startAndroidEmulator": "./scripts/start-android.sh",
-    "postinstall": "./scripts/postInstall.sh",
+    "postinstall": "bash ./scripts/postInstall.sh",
     "clean": "npx react-native clean-project-auto",
     "android": "./scripts/set-pusher-suffix.sh && npx react-native run-android --mode=developmentDebug --appId=com.expensify.chat.dev --active-arch-only",
     "ios": "./scripts/set-pusher-suffix.sh && npx react-native run-ios --list-devices --mode=\"DebugDevelopment\" --scheme=\"New Expensify Dev\"",
