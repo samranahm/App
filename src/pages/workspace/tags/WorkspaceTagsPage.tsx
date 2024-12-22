@@ -33,7 +33,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
@@ -368,11 +367,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
-                            setSelectedTags({});
-                            turnOffMobileSelectionMode();
-                            return;
-                        }
                         Navigation.goBack(backTo);
                     }}
                     shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
