@@ -683,6 +683,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
+                    disableHoverHighlight={hasKeyBeenPressed.current && focusedIndex >= 0}
                 />
             </View>
         );

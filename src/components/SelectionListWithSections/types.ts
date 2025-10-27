@@ -426,6 +426,9 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Callback when the input inside the item is blurred (if input exists) */
     onInputBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void;
+
+    /** Whether to disable hover-based highlighting for the item */
+    disableHoverHighlight?: boolean;
 };
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
@@ -447,6 +450,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
         testID?: string;
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
+        /** Whether to disable hover-based highlighting for the item */
+        disableHoverHighlight?: boolean;
     };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
