@@ -13,6 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import * as ReportUtils from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -64,7 +65,7 @@ function ExpenseReportListItemRow({
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const {total, currency} = useMemo(() => {
+    const {total, currency, isScanning} = useMemo(() => {
         let reportTotal = item.total ?? 0;
 
         if (reportTotal) {
@@ -77,8 +78,10 @@ function ExpenseReportListItemRow({
 
         const reportCurrency = item.currency ?? CONST.CURRENCY.USD;
 
-        return {total: reportTotal, currency: reportCurrency};
-    }, [item.type, item.total, item.currency]);
+        const spendBreakdown = ReportUtils.getMoneyRequestSpendBreakdown(item);
+
+        return {total: reportTotal, currency: reportCurrency, isScanning: spendBreakdown.isScanning ?? false};
+    }, [item]);
 
     const nonReimbursableTotal = item.nonReimbursableTotal ?? 0;
     const reimbursableTotal = total - nonReimbursableTotal;
@@ -163,6 +166,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={reimbursableTotal}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -171,6 +175,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={nonReimbursableTotal}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -179,6 +184,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={total}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -261,6 +267,7 @@ function ExpenseReportListItemRow({
                         <TotalCell
                             total={total}
                             currency={currency}
+                            isScanning={isScanning}
                         />
                     </View>
                 </View>

@@ -315,6 +315,7 @@ type SpendBreakdown = {
     nonReimbursableSpend: number;
     reimbursableSpend: number;
     totalDisplaySpend: number;
+    isScanning?: boolean;
 };
 
 type OptimisticAddCommentReportAction = Pick<
@@ -4294,11 +4295,26 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
                 totalDisplaySpend,
             };
         }
+
+        // Check if transactions in the report are being scanned
+        const transactions = getReportTransactions(moneyRequestReport.reportID);
+        if (transactions.length > 0) {
+            const allTransactionsScanning = transactions.every((transaction) => isScanning(transaction));
+            if (allTransactionsScanning) {
+                return {
+                    nonReimbursableSpend: 0,
+                    reimbursableSpend: 0,
+                    totalDisplaySpend: 0,
+                    isScanning: true,
+                };
+            }
+        }
     }
     return {
         nonReimbursableSpend: 0,
         reimbursableSpend: 0,
         totalDisplaySpend: 0,
+        isScanning: false,
     };
 }
 
