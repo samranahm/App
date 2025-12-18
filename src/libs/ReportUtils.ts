@@ -4296,11 +4296,11 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
             };
         }
 
-        // Check if transactions in the report are being scanned
+        // Check if any transactions in the report are being scanned
         const transactions = getReportTransactions(moneyRequestReport.reportID);
         if (transactions.length > 0) {
-            const allTransactionsScanning = transactions.every((transaction) => isScanning(transaction));
-            if (allTransactionsScanning) {
+            const isAnyTransactionScanning = transactions.some((transaction) => isScanning(transaction));
+            if (isAnyTransactionScanning) {
                 return {
                     nonReimbursableSpend: 0,
                     reimbursableSpend: 0,
