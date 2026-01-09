@@ -18,6 +18,7 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useOnyx as useOnyxHook} from 'react-native-onyx';
 import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
@@ -48,6 +49,7 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
+    const [subscriptionDiscountCodeFormDraft] = useOnyxHook(ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const privateSubscription = usePrivateSubscription();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -124,6 +126,14 @@ function SubscriptionSettings() {
                     />
                 </OfflineWithFeedback>
                 {!privateSubscription?.userCount && <Text style={[styles.mt2, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>}
+                <MenuItemWithTopDescription
+                    description={translate('subscription.discountCode.discountCode')}
+                    shouldShowRightIcon
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISCOUNT_CODE)}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    style={styles.mt5}
+                    title={subscriptionDiscountCodeFormDraft?.discountCode ?? ''}
+                />
             </>
         ) : null;
 

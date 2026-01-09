@@ -425,6 +425,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 canChangeSize: Number,
                             },
                         },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.DISCOUNT_CODE]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_DISCOUNT_CODE,
+                        },
                         [SCREENS.SETTINGS.SUBSCRIPTION.DISABLE_AUTO_RENEW_SURVEY]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY,
                         },

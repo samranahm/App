@@ -403,7 +403,7 @@ type SubscriptionCommitmentParams = {size: number; date: string};
 
 type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
 
-type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscriptionSize: string; autoRenew: string; autoIncrease: string};
+type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscriptionSize: string; discountCode: string; autoRenew: string; autoIncrease: string};
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
