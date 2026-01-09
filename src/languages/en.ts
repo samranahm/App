@@ -7454,6 +7454,14 @@ const translations = {
                 sameSize: 'Please enter a number different than your current subscription size',
             },
         },
+        discountCode: {
+            discountCode: 'Discount code',
+            enterCode: 'Enter a discount code to apply to your subscription.',
+            apply: 'Apply',
+            error: {
+                invalid: 'This code is invalid',
+            },
+        },
         paymentCard: {
             addPaymentCard: 'Add payment card',
             enterPaymentCardDetails: 'Enter your payment card details',
@@ -7462,8 +7470,8 @@ const translations = {
         },
         subscriptionSettings: {
             title: 'Subscription settings',
-            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
-                `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
+            summary: ({subscriptionType, subscriptionSize, discountCode, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}, Discount code: ${discountCode}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
             none: 'none',
             on: 'on',
             off: 'off',

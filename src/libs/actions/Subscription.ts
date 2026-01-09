@@ -1,7 +1,7 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
+import type {ApplyDiscountCodeParams, CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
@@ -292,6 +292,50 @@ function requestTaxExempt() {
     API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
+function applyDiscountCode(discountCode: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM,
+            value: {
+                isLoading: false,
+                discountCode: '',
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const parameters: ApplyDiscountCodeParams = {
+        discountCode,
+    };
+
+    API.write(WRITE_COMMANDS.APPLY_DISCOUNT_CODE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     openSubscriptionPage,
     updateSubscriptionAutoRenew,
@@ -302,4 +346,5 @@ export {
     clearOutstandingBalance,
     cancelBillingSubscription,
     requestTaxExempt,
+    applyDiscountCode,
 };

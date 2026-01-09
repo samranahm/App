@@ -48,6 +48,7 @@ function SubscriptionSettings() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
+    const [subscriptionDiscountCodeFormDraft] = useOnyx(ONYXKEYS.FORMS.SUBSCRIPTION_DISCOUNT_CODE_FORM_DRAFT, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const privateSubscription = usePrivateSubscription();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
@@ -124,6 +125,14 @@ function SubscriptionSettings() {
                     />
                 </OfflineWithFeedback>
                 {!privateSubscription?.userCount && <Text style={[styles.mt2, styles.textLabelSupporting, styles.textLineHeightNormal]}>{translate('subscription.details.headsUp')}</Text>}
+                <MenuItemWithTopDescription
+                    description={translate('subscription.discountCode.discountCode')}
+                    shouldShowRightIcon
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISCOUNT_CODE)}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    style={styles.mt5}
+                    title={subscriptionDiscountCodeFormDraft?.discountCode ?? ''}
+                />
             </>
         ) : null;
 
