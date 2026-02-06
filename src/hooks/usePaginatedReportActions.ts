@@ -73,8 +73,18 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return {data: [], hasNextPage: false, hasPreviousPage: false};
         }
 
-        return PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
-    }, [id, reportActionPages, sortedAllReportActions]);
+        const result = PaginationUtils.getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
+        if (id && result.data.length === 0 && hasWriteAccess) {
+            return {
+                data: sortedAllReportActions,
+                hasNextPage: true,
+                hasPreviousPage: true,
+                resourceItem: undefined,
+            };
+        }
+
+        return result;
+    }, [id, reportActionPages, sortedAllReportActions, hasWriteAccess]);
 
     const linkedAction = useMemo(() => (reportActionID ? resourceItem?.item : undefined), [resourceItem?.item, reportActionID]);
 
