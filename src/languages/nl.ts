@@ -7406,6 +7406,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         scrollToNewestMessages: 'Scroll naar nieuwste berichten',
         preStyledText: 'Vooraf opgemaakte tekst',
         viewAttachment: 'Bijlage bekijken',
+        selectAllFeatures: 'Selecteer alle functies',
+        selectAllTransactions: 'Selecteer alle transacties',
+        selectAllItems: 'Alle items selecteren',
     },
     parentReportAction: {
         deletedReport: 'Verwijderd rapport',
