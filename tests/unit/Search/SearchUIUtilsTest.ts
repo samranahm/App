@@ -6096,6 +6096,25 @@ describe('SearchUIUtils', () => {
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
         });
+
+        test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
+            const childReportID = 'child-thread-456';
+            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+            const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
+            const iouActionWithChild = {
+                ...reportAction3,
+                childReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`, {
+                [iouActionWithChild.reportActionID]: iouActionWithChild,
+            });
+            await waitForBatchedUpdates();
+
+            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, backTo, undefined, undefined, true);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
+        });
     });
 
     describe('setOptimisticDataForTransactionThreadPreview', () => {
