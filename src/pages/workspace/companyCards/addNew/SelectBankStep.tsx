@@ -67,7 +67,7 @@ function SelectBankStep() {
 
     const data = Object.values(CONST.COMPANY_CARDS.BANKS)
         .filter((bank) => {
-            // Only show Mock Bank when the frontend environment is not production or when using the staging server with debug mode enabled
+            // Only show Mock Bank when the frontend environment is not production or when using the staging server
             if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
                 return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
             }
