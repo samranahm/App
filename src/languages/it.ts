@@ -1346,6 +1346,9 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
+            nonReimbursablePayment: 'Impossibile pagare con pagamento diretto',
+            nonReimbursablePaymentDescription:
+                'Questo report non contiene spese rimborsabili e non può essere pagato tramite pagamento diretto. Usa "Paga altrove" per contrassegnarlo come pagato.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',

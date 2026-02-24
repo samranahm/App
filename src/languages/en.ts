@@ -1364,6 +1364,8 @@ const translations = {
             endDateSameAsStartDate: "The end date can't be the same as the start date",
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
+            nonReimbursablePayment: 'Cannot pay via direct payment',
+            nonReimbursablePaymentDescription: 'This report does’t have reimbursable expenses and cannot be paid via direct payment. Use "Pay elsewhere" to mark it as paid instead.',
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',

@@ -1340,6 +1340,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
+            nonReimbursablePayment: '直接支払いでは支払えません',
+            nonReimbursablePaymentDescription: 'このレポートには精算対象の経費が含まれていないため、直接支払いはできません。「その他の方法で支払う」を使用して支払い済みにしてください。',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: 'ご注意ください！このエラーを閉じると、アップロード済みのレシートが完全に削除されます。本当に続行しますか？',

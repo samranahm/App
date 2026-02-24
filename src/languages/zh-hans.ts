@@ -1318,6 +1318,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
+            nonReimbursablePayment: '无法通过直接付款支付',
+            nonReimbursablePaymentDescription: '此报告不包含可报销费用，因此无法通过直接付款进行支付。请使用“其他方式支付”将其标记为已支付。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',

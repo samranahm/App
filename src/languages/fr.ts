@@ -1353,6 +1353,9 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
+            nonReimbursablePayment: 'Impossible de payer par virement direct',
+            nonReimbursablePaymentDescription:
+                'Ce rapport ne contient aucune dépense remboursable et ne peut pas être payé par paiement direct. Utilisez "Payer ailleurs" pour le marquer comme payé.',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera complètement votre reçu téléversé. Êtes-vous sûr ?',
