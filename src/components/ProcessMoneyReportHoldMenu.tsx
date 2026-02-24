@@ -5,8 +5,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import {payMoneyRequest} from '@userActions/IOU';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -46,6 +47,9 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Whether the report has non held expenses */
     hasNonHeldExpenses?: boolean;
+
+    /** Callback when user attempts to pay via ACH but report has only non-reimbursable expenses */
+    onNonReimbursablePaymentError?: () => void;
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -59,6 +63,7 @@ function ProcessMoneyReportHoldMenu({
     transactionCount,
     startAnimation,
     hasNonHeldExpenses,
+    onNonReimbursablePaymentError,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
@@ -77,6 +82,11 @@ function ProcessMoneyReportHoldMenu({
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            onClose();
+            onNonReimbursablePaymentError?.();
             return;
         }
         if (chatReport && paymentType) {
