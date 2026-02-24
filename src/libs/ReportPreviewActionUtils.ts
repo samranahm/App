@@ -9,6 +9,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
+    hasOnlyNonReimbursableTransactions,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -121,7 +122,7 @@ function canPay(
     const hasExportError = report?.hasExportError ?? false;
     const didExportFail = !isExported && hasExportError;
 
-    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
+    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (reimbursableSpend !== 0 || hasOnlyNonReimbursableTransactions(report?.reportID))) {
         return !didExportFail;
     }
 

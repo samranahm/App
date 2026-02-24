@@ -155,6 +155,7 @@ import {
     getTransactionDetails,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
     hasViolations as hasViolationsReportUtils,
     isArchivedReport,
@@ -10448,7 +10449,7 @@ function canIOUBePaid(
         isPayer &&
         isReportFinished &&
         !iouSettled &&
-        (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount) &&
+        (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || (onlyShowPayElsewhere && hasOnlyNonReimbursableTransactions(iouReport?.reportID))) &&
         !isChatReportArchived &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&

@@ -30,6 +30,7 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
+    hasOnlyNonReimbursableTransactions,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -198,7 +199,7 @@ function isPrimaryPayAction(
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
+    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && (reimbursableSpend !== 0 || hasOnlyNonReimbursableTransactions(report?.reportID))) {
         return isSecondaryAction ?? !didExportFail;
     }
 
