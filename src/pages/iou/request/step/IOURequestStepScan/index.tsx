@@ -23,7 +23,6 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
@@ -46,6 +45,7 @@ import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
+import useDragAndDropSupport from './useDragAndDropSupport';
 import useReceiptScan from './useReceiptScan';
 
 function IOURequestStepScan({
@@ -62,9 +62,8 @@ function IOURequestStepScan({
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    // we need to use isSmallScreenWidth instead of shouldUseNarrowLayout because drag and drop is not supported on mobile
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const isMobileWeb = isMobile();
+    const canUseDragAndDrop = useDragAndDropSupport();
     const {translate} = useLocalize();
     const {isDraggingOver} = useDragAndDropState();
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
@@ -140,7 +139,7 @@ function IOURequestStepScan({
      * The last deviceId is of regular len camera.
      */
     const requestCameraPermission = useCallback(() => {
-        if (!isMobile()) {
+        if (!isMobileWeb) {
             return;
         }
 
@@ -227,7 +226,7 @@ function IOURequestStepScan({
     }, []);
 
     useEffect(() => {
-        if (!isMobile() || !isTabActive) {
+        if (!isMobileWeb || !isTabActive) {
             setVideoConstraints(undefined);
             return;
         }
@@ -468,7 +467,7 @@ function IOURequestStepScan({
                             mirrored={false}
                             screenshotQuality={0}
                         />
-                        {canUseMultiScan && isMobile() ? (
+                        {canUseMultiScan && isMobileWeb ? (
                             <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
                                 <PressableWithFeedback
                                     role={CONST.ROLE.BUTTON}
@@ -533,7 +532,7 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                {canUseMultiScan && isMobile() ? (
+                {canUseMultiScan && isMobileWeb ? (
                     <PressableWithFeedback
                         accessibilityRole="button"
                         role={CONST.ROLE.BUTTON}
@@ -567,7 +566,7 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
-            {canUseMultiScan && isMobile() && shouldShowMultiScanEducationalPopup && (
+            {canUseMultiScan && isMobileWeb && shouldShowMultiScanEducationalPopup && (
                 <FeatureTrainingModal
                     title={translate('iou.scanMultipleReceipts')}
                     image={lazyIllustrations.MultiScan}
@@ -597,9 +596,9 @@ function IOURequestStepScan({
     const [containerHeight, setContainerHeight] = useState(0);
     const [desktopUploadViewHeight, setDesktopUploadViewHeight] = useState(0);
     const [alternativeMethodsHeight, setAlternativeMethodsHeight] = useState(0);
-    // We use isMobile() here to explicitly hide the alternative methods component on both mobile web and native apps
-    const chooseFilesPaddingVertical = Number(styles.chooseFilesView(isSmallScreenWidth).paddingVertical);
-    const shouldHideAlternativeMethods = isMobile() || alternativeMethodsHeight + desktopUploadViewHeight + chooseFilesPaddingVertical * 2 > containerHeight;
+    // We use isMobileWeb here to explicitly hide the alternative methods component on both mobile web and native apps
+    const chooseFilesPaddingVertical = Number(styles.chooseFilesView(!canUseDragAndDrop).paddingVertical);
+    const shouldHideAlternativeMethods = isMobileWeb || alternativeMethodsHeight + desktopUploadViewHeight + chooseFilesPaddingVertical * 2 > containerHeight;
 
     const desktopUploadView = () => (
         <View
@@ -660,10 +659,10 @@ function IOURequestStepScan({
                         }
                         onLayout(setTestReceiptAndNavigate);
                     }}
-                    style={[styles.flex1, !isMobile() && styles.chooseFilesView(isSmallScreenWidth)]}
+                    style={[styles.flex1, canUseDragAndDrop && styles.chooseFilesView(!canUseDragAndDrop)]}
                 >
-                    <View style={[styles.flex1, !isMobile() && styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobile() ? mobileCameraView() : desktopUploadView())}
+                    <View style={[styles.flex1, canUseDragAndDrop && styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {!(isDraggingOver ?? isDraggingOverWrapper) && (isMobileWeb ? mobileCameraView() : desktopUploadView())}
                     </View>
                     <DragAndDropConsumer onDrop={handleDropReceipt}>
                         <DropZoneUI
