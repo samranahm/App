@@ -1857,7 +1857,7 @@ function getActions(
     const chatReport = getChatReport(data, report);
     const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
     const canOnlyBePaidElsewhere = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(report?.reportID);
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(report?.reportID, allReportTransactions?.length ? allReportTransactions : undefined);
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere && !reportHasOnlyNonReimbursableTransactions;
 
     // We're not supporting pay partial amount on search page now.
@@ -4447,6 +4447,7 @@ export {
     isTaskListItemType,
     getActions,
     createTypeMenuSections,
+    getTransactionsForReport,
     formatBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,

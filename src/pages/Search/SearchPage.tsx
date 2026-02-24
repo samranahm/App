@@ -77,7 +77,7 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {getTransactionsForReport, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation} from '@userActions/IOU';
@@ -203,11 +203,12 @@ function SearchPage({route}: SearchPageProps) {
             const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReportID = report?.chatReportID;
             const chatReport = chatReportID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
+            const reportTransactions = currentSearchResults?.data ? getTransactionsForReport(currentSearchResults.data, reportID) : [];
             return (
                 report &&
                 !canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, false) &&
                 canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, true) &&
-                !hasOnlyNonReimbursableTransactions(report?.reportID)
+                !hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions.length ? reportTransactions : undefined)
             );
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
