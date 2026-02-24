@@ -1,18 +1,21 @@
-import React from 'react';
+import React, {useState} from 'react';
 import type {ValueOf} from 'type-fest';
+import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PaymentMethod} from '@components/KYCWall/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canIOUBePaid} from '@libs/actions/IOU';
 import {getPayMoneyOnSearchInvoiceParams, payMoneyRequestOnSearch} from '@libs/actions/Search';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {isInvoiceReport} from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions, isInvoiceReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,16 +31,20 @@ type PayActionCellProps = {
 };
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall, shouldDisablePointerEvents}: PayActionCellProps) {
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [nonReimbursablePaymentErrorModalVisible, setNonReimbursablePaymentErrorModalVisible] = useState(false);
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false);
-    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true);
+    const shouldOnlyShowElsewhere =
+        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true) && !hasOnlyNonReimbursableTransactions(iouReport?.reportID);
 
     const {currency} = iouReport ?? {};
 
@@ -48,6 +55,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
 
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+
+        if (!isInvoiceReport(iouReport) && hasOnlyNonReimbursableTransactions(iouReport?.reportID) && type !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            setNonReimbursablePaymentErrorModalVisible(true);
             return;
         }
 
@@ -76,6 +88,15 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
                 isLoading={isLoading}
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_PAY}
+            />
+            <DecisionModal
+                title={translate('iou.error.nonReimbursablePayment')}
+                prompt={translate('iou.error.nonReimbursablePaymentDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setNonReimbursablePaymentErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={nonReimbursablePaymentErrorModalVisible}
+                onClose={() => setNonReimbursablePaymentErrorModalVisible(false)}
             />
         </SearchScopeProvider>
     );

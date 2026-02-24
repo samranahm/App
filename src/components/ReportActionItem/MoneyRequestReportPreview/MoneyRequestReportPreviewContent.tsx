@@ -10,6 +10,7 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import Icon from '@components/Icon';
@@ -63,6 +64,7 @@ import {
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasOnlyNonReimbursableTransactions,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
@@ -174,6 +176,7 @@ function MoneyRequestReportPreviewContent({
         usePaymentAnimations();
     const {showConfirmModal} = useConfirmModal();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
+    const [nonReimbursablePaymentErrorModalVisible, setNonReimbursablePaymentErrorModalVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
@@ -192,8 +195,15 @@ function MoneyRequestReportPreviewContent({
     );
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(iouReport?.reportID);
+    const onlyShowPayElsewhere = useMemo(() => {
+        if (reportHasOnlyNonReimbursableTransactions) {
+            return false;
+        }
+        return !canIOUBePaid && getCanIOUBePaid(true);
+    }, [canIOUBePaid, getCanIOUBePaid, reportHasOnlyNonReimbursableTransactions]);
+
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
     const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false), [getCanIOUBePaid]);
@@ -223,7 +233,6 @@ function MoneyRequestReportPreviewContent({
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isManagedCardTransaction(transaction)).length;
 
     const shouldShowRTERViolationMessage = numberOfRequests === 1 && hasPendingUI(lastTransaction, lastTransactionViolations);
-    const shouldShowOnlyPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
 
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
 
@@ -247,6 +256,10 @@ function MoneyRequestReportPreviewContent({
     const confirmPayment = useCallback(
         (type: PaymentMethodType | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
             if (!type) {
+                return;
+            }
+            if (!isInvoiceReportUtils(iouReport) && hasOnlyNonReimbursableTransactions(iouReport?.reportID) && type !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                setNonReimbursablePaymentErrorModalVisible(true);
                 return;
             }
             setPaymentType(type);
@@ -665,7 +678,7 @@ function MoneyRequestReportPreviewContent({
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
             <AnimatedSettlementButton
-                onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
+                onlyShowPayElsewhere={onlyShowPayElsewhere}
                 isPaidAnimationRunning={isPaidAnimationRunning}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
@@ -963,8 +976,18 @@ function MoneyRequestReportPreviewContent({
                     transactionCount={numberOfRequests}
                     startAnimation={startAnimation}
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                    onNonReimbursablePaymentError={() => setNonReimbursablePaymentErrorModalVisible(true)}
                 />
             )}
+            <DecisionModal
+                title={translate('iou.error.nonReimbursablePayment')}
+                prompt={translate('iou.error.nonReimbursablePaymentDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setNonReimbursablePaymentErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={nonReimbursablePaymentErrorModalVisible}
+                onClose={() => setNonReimbursablePaymentErrorModalVisible(false)}
+            />
         </View>
     );
 }
