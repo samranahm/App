@@ -69,6 +69,7 @@ import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     getReportOrDraftReport,
+    hasOnlyNonReimbursableTransactions,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtil,
@@ -205,7 +206,8 @@ function SearchPage({route}: SearchPageProps) {
             return (
                 report &&
                 !canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, false) &&
-                canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, true)
+                canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, true) &&
+                !hasOnlyNonReimbursableTransactions(report?.reportID)
             );
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);

@@ -126,6 +126,7 @@ import {
     hasAnyViolations,
     hasHeldExpenses,
     hasInvoiceReports,
+    hasOnlyNonReimbursableTransactions,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -1812,10 +1813,14 @@ function getActions(
 
     const chatReport = getChatReport(data, report);
     const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
-    const shouldOnlyShowElsewhere = !canBePaid && canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(report?.reportID);
+    const shouldOnlyShowElsewhere =
+        !canBePaid &&
+        canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy) &&
+        !reportHasOnlyNonReimbursableTransactions;
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere || reportHasOnlyNonReimbursableTransactions) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
