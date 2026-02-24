@@ -1856,14 +1856,12 @@ function getActions(
 
     const chatReport = getChatReport(data, report);
     const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const canOnlyBePaidElsewhere = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
     const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(report?.reportID);
-    const shouldOnlyShowElsewhere =
-        !canBePaid &&
-        canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy) &&
-        !reportHasOnlyNonReimbursableTransactions;
+    const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere && !reportHasOnlyNonReimbursableTransactions;
 
     // We're not supporting pay partial amount on search page now.
-    if ((canBePaid || shouldOnlyShowElsewhere || reportHasOnlyNonReimbursableTransactions) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
+    if ((canBePaid || shouldOnlyShowElsewhere || (reportHasOnlyNonReimbursableTransactions && canOnlyBePaidElsewhere)) && !hasHeldExpenses(report.reportID, allReportTransactions)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.PAY);
     }
 
@@ -1871,7 +1869,7 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
     }
 
-    if (isClosedReport(report) && !(canBePaid || shouldOnlyShowElsewhere)) {
+    if (isClosedReport(report) && !(canBePaid || shouldOnlyShowElsewhere || (reportHasOnlyNonReimbursableTransactions && canOnlyBePaidElsewhere))) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
 

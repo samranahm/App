@@ -17,6 +17,7 @@ jest.mock('@libs/ReportUtils', () => ({
         reimbursableSpend: 50,
         totalDisplaySpend: 100,
     }),
+    hasOnlyNonReimbursableTransactions: jest.fn().mockReturnValue(false),
     hasHeldExpenses: jest.fn().mockReturnValue(false),
     parseReportRouteParams: jest.fn().mockReturnValue({
         reportID: mockedReportID,
