@@ -20,7 +20,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -111,9 +111,6 @@ type MoneyRequestReportListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, OnyxTypes.TransactionViolation[]>;
-
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
 
@@ -133,7 +130,6 @@ function MoneyRequestReportActionsList({
     reportActions = [],
     transactions = [],
     newTransactions,
-    violations,
     hasNewerActions,
     hasOlderActions,
     hasPendingDeletionTransaction,
@@ -156,7 +152,6 @@ function MoneyRequestReportActionsList({
     const reportID = report?.reportID;
     const linkedReportActionID = route?.params?.reportActionID;
 
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const parentReportAction = useParentReportAction(report);
@@ -202,7 +197,8 @@ function MoneyRequestReportActionsList({
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
-    const {selectedTransactionIDs, setSelectedTransactions, clearSelectedTransactions} = useSearchContext();
+    const {selectedTransactionIDs} = useSearchStateContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
 
     useFilterSelectedTransactions(transactions);
 
@@ -331,6 +327,14 @@ function MoneyRequestReportActionsList({
 
         return filteredActions.toReversed();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction]);
+
+    const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
+    useEffect(() => {
+        if (!shouldShowOpenReportLoadingSkeleton) {
+            return;
+        }
+        markOpenReportEnd(report, {warm: false});
+    }, [report, shouldShowOpenReportLoadingSkeleton]);
 
     const reportActionSize = useRef(visibleReportActions.length);
     const lastAction = visibleReportActions.at(-1);
@@ -652,7 +656,6 @@ function MoneyRequestReportActionsList({
 
             return (
                 <ReportActionsListItemRenderer
-                    allReports={allReports}
                     policies={policies}
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -690,7 +693,6 @@ function MoneyRequestReportActionsList({
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
-            allReports,
             policies,
             userWalletTierName,
             isUserValidated,
@@ -742,8 +744,8 @@ function MoneyRequestReportActionsList({
 
         didLayout.current = true;
 
-        markOpenReportEnd(report);
-    }, [report]);
+        markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
+    }, [report, shouldShowOpenReportLoadingSkeleton]);
 
     const isSelectAllChecked = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === transactionsWithoutPendingDelete.length;
     // Wrapped into useCallback to stabilize children re-renders
@@ -856,7 +858,6 @@ function MoneyRequestReportActionsList({
                                     newTransactions={newTransactions}
                                     hasPendingDeletionTransaction={hasPendingDeletionTransaction}
                                     reportActions={reportActions}
-                                    violations={violations}
                                     scrollToNewTransaction={scrollToNewTransaction}
                                     policy={policy}
                                     hasComments={visibleReportActions.length > 0}

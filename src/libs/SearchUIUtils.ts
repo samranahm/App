@@ -708,7 +708,7 @@ function getSuggestedSearches(
         },
         [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: {
             key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
-            translationPath: 'search.statements',
+            translationPath: 'search.cardStatements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'CreditCard',
             searchQuery: buildQueryStringFromFilterFormValues({
@@ -778,17 +778,55 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
+        [CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]: {
+            key: CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD,
+            translationPath: 'workspace.common.expensifyCard',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: 'CreditCard',
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD,
+                    withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
         [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: {
             key: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
-            translationPath: 'search.reconciliation',
+            translationPath: 'workspace.common.reimburse',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: 'Bank',
-            searchQuery: buildQueryStringFromFilterFormValues({
-                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
-                withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
-                groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
-            }),
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
+                    withdrawnOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                    groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
+                    view: CONST.SEARCH.VIEW.TABLE,
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },
@@ -912,7 +950,8 @@ function getSuggestedSearchesVisibility(
     let shouldShowStatementsSuggestion = false;
     let shouldShowUnapprovedCashSuggestion = false;
     let shouldShowUnapprovedCardSuggestion = false;
-    let shouldShowReconciliationSuggestion = false;
+    let shouldShowExpensifyCardSuggestion = false;
+    let shouldShowReimbursementsSuggestion = false;
     let shouldShowTopSpendersSuggestion = false;
     let shouldShowTopCategoriesSuggestion = false;
     let shouldShowTopMerchantsSuggestion = false;
@@ -951,7 +990,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForStatementsSuggestion = isPaidPolicy && !!policy.areCompanyCardsEnabled && hasCardFeed;
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
+        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && isAdmin && isECardEnabled;
+        const isEligibleForReimbursementsSuggestion = isPaidPolicy && isAdmin && isPaymentEnabled && hasVBBA && hasReimburser;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover) && memberCount >= 2;
@@ -966,7 +1006,8 @@ function getSuggestedSearchesVisibility(
         shouldShowStatementsSuggestion ||= isEligibleForStatementsSuggestion;
         shouldShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
         shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
-        shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
+        shouldShowExpensifyCardSuggestion ||= isEligibleForExpensifyCardSuggestion;
+        shouldShowReimbursementsSuggestion ||= isEligibleForReimbursementsSuggestion;
         shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
@@ -987,7 +1028,8 @@ function getSuggestedSearchesVisibility(
             shouldShowStatementsSuggestion &&
             shouldShowUnapprovedCashSuggestion &&
             shouldShowUnapprovedCardSuggestion &&
-            shouldShowReconciliationSuggestion &&
+            shouldShowExpensifyCardSuggestion &&
+            shouldShowReimbursementsSuggestion &&
             shouldShowTopSpendersSuggestion &&
             shouldShowTopCategoriesSuggestion &&
             shouldShowTopMerchantsSuggestion &&
@@ -1007,7 +1049,8 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.STATEMENTS]: shouldShowStatementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
-            [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowReconciliationSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]: shouldShowExpensifyCardSuggestion,
+            [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowReimbursementsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES]: shouldShowTopCategoriesSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
@@ -3568,24 +3611,15 @@ function createTypeMenuSections(
         }
     }
 
-    // Accounting section
+    // Monthly accrual section
     {
-        const accountingSection: SearchTypeMenuSection = {
-            translationPath: 'workspace.common.accounting',
+        const monthlyAccrualSection: SearchTypeMenuSection = {
+            translationPath: 'search.monthlyAccrual',
             menuItems: [],
         };
 
-        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]) {
-            accountingSection.menuItems.push({
-                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
-                emptyState: {
-                    title: 'search.searchResults.emptyStatementsResults.title',
-                    subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
-                },
-            });
-        }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]) {
-            accountingSection.menuItems.push({
+            monthlyAccrualSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH],
                 emptyState: {
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -3594,7 +3628,7 @@ function createTypeMenuSections(
             });
         }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]) {
-            accountingSection.menuItems.push({
+            monthlyAccrualSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD],
                 emptyState: {
                     title: 'search.searchResults.emptyUnapprovedResults.title',
@@ -3602,8 +3636,39 @@ function createTypeMenuSections(
                 },
             });
         }
+
+        if (monthlyAccrualSection.menuItems.length > 0) {
+            typeMenuSections.push(monthlyAccrualSection);
+        }
+    }
+
+    // Reconciliation section
+    {
+        const reconciliationSection: SearchTypeMenuSection = {
+            translationPath: 'search.reconciliation',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.STATEMENTS]) {
+            reconciliationSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.STATEMENTS],
+                emptyState: {
+                    title: 'search.searchResults.emptyStatementsResults.title',
+                    subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
+                },
+            });
+        }
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD]) {
+            reconciliationSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.EXPENSIFY_CARD],
+                emptyState: {
+                    title: 'search.searchResults.emptyStatementsResults.title',
+                    subtitle: 'search.searchResults.emptyStatementsResults.subtitle',
+                },
+            });
+        }
         if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]) {
-            accountingSection.menuItems.push({
+            reconciliationSection.menuItems.push({
                 ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.RECONCILIATION],
                 emptyState: {
                     title: 'search.searchResults.emptyStatementsResults.title',
@@ -3612,8 +3677,8 @@ function createTypeMenuSections(
             });
         }
 
-        if (accountingSection.menuItems.length > 0) {
-            typeMenuSections.push(accountingSection);
+        if (reconciliationSection.menuItems.length > 0) {
+            typeMenuSections.push(reconciliationSection);
         }
     }
 

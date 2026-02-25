@@ -42,9 +42,13 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, extraSmall,
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
-    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false);
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
+    const canBePaid = canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
     const shouldOnlyShowElsewhere =
-        !canBePaid && canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true) && !hasOnlyNonReimbursableTransactions(iouReport?.reportID);
+        !canBePaid &&
+        canIOUBePaid(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy) &&
+        !hasOnlyNonReimbursableTransactions(iouReport?.reportID);
 
     const {currency} = iouReport ?? {};
 
