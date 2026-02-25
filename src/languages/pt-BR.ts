@@ -1342,9 +1342,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
             manySplitsProvided: `O número máximo de divisões permitido é ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
-            nonReimbursablePayment: 'Não é possível pagar via pagamento direto',
-            nonReimbursablePaymentDescription:
-                'Este relatório não possui despesas reembolsáveis e não pode ser pago via pagamento direto. Use "Pagar em outro lugar" para marcá-lo como pago.',
+            nonReimbursablePayment: 'Não é possível pagar via Expensify',
+            nonReimbursablePaymentDescription: 'O relatório não possui despesas reembolsáveis. Verifique as despesas novamente ou marque-o manualmente como pago.',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o comprovante que você enviou. Tem certeza?',

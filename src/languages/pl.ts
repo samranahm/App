@@ -1344,9 +1344,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'Data zakończenia nie może być taka sama jak data rozpoczęcia',
             manySplitsProvided: `Maksymalna dozwolona liczba podziałów to ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
-            nonReimbursablePayment: 'Nie można zapłacić płatnością bezpośrednią',
-            nonReimbursablePaymentDescription:
-                'Ten raport nie zawiera wydatków podlegających zwrotowi i nie może zostać opłacony za pomocą płatności bezpośredniej. Użyj "Zapłać gdzie indziej", aby oznaczyć go jako opłacony.',
+            nonReimbursablePayment: 'Nie można zapłacić przez Expensify',
+            nonReimbursablePaymentDescription: 'Raport nie zawiera wydatków podlegających zwrotowi. Sprawdź wydatki ponownie lub oznacz go ręcznie jako opłacony.',
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Zamknięcie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',

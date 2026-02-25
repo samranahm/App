@@ -1345,9 +1345,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'De einddatum mag niet gelijk zijn aan de startdatum',
             manySplitsProvided: `Het maximale aantal toegestane splitsingen is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
-            nonReimbursablePayment: 'Kan niet via directe betaling betalen',
-            nonReimbursablePaymentDescription:
-                'Dit rapport bevat geen declareerbare uitgaven en kan niet via directe betaling worden betaald. Gebruik "Elders betalen" om het als betaald te markeren.',
+            nonReimbursablePayment: 'Kan niet via Expensify worden betaald',
+            nonReimbursablePaymentDescription: 'Het rapport bevat geen declareerbare kosten. Controleer de kosten opnieuw of markeer het handmatig als betaald.',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Dit foutbericht negeren verwijdert je geüploade bon volledig. Weet je het zeker?',
