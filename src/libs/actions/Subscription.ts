@@ -295,7 +295,7 @@ function requestTaxExempt() {
     API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
-function applyExpensifyCode(expensifyCode: string) {
+function applyExpensifyCode(promoCode: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -323,7 +323,7 @@ function applyExpensifyCode(expensifyCode: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                expensifyCode,
+                promoCode,
             },
         },
     ];
@@ -342,7 +342,7 @@ function applyExpensifyCode(expensifyCode: string) {
     ];
 
     const parameters = {
-        expensifyCode,
+        promoCode,
     };
 
     API.write(WRITE_COMMANDS.SET_PROMO_CODE, parameters, {
