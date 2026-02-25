@@ -52,7 +52,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
                             width={variables.iconHeader}
                             height={variables.iconHeader}
                         />
-                        {!isDisabled && (
+                        {(isSelected || !isDisabled) && (
                             <View>
                                 <SelectCircle
                                     isChecked={isSelected}
