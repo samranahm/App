@@ -28,7 +28,7 @@ function ExpensifyCodePage() {
     const {inputCallbackRef} = useAutoFocusInput();
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [subscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const isExpensifyCodeApplied = !!subscription?.expensifyCode;
+    const isExpensifyCodeApplied = !!subscription?.promoCode;
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
@@ -42,8 +42,7 @@ function ExpensifyCodePage() {
     );
 
     const handleSubmit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>) => {
-        const expensifyCode = values[INPUT_IDS.EXPENSIFY_CODE];
-        applyExpensifyCode(expensifyCode);
+        applyExpensifyCode(values[INPUT_IDS.EXPENSIFY_CODE]);
         clearDraftValues(ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM);
         setHasSubmitted(true);
     }, []);
@@ -61,7 +60,7 @@ function ExpensifyCodePage() {
         Navigation.goBack();
     }, [hasSubmitted, isExpensifyCodeApplied]);
 
-    if (isExpensifyCodeApplied || subscription?.isSecretPromoCode) {
+    if ((isExpensifyCodeApplied && !hasSubmitted) || subscription?.isSecretPromoCode) {
         return <NotFoundPage />;
     }
 
