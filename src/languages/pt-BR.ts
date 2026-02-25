@@ -8069,7 +8069,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             changesBasedOn: 'Isso muda de acordo com o uso do seu Cartão Expensify e as opções de assinatura abaixo.',
             collectBillingDescription: 'Os espaços de trabalho Collect são cobrados mensalmente por membro, sem compromisso anual.',
             pricing: 'Preços',
-            collectPricing: ({price}: {price: string}) => `${price} por membro por mês`,
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelamento antecipado',

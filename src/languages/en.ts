@@ -8066,7 +8066,6 @@ const translations = {
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
             collectBillingDescription: 'Collect workspaces are billed monthly per member, with no annual commitment.',
             pricing: 'Pricing',
-            collectPricing: ({price}: {price: string}) => `${price} per member per month`,
         },
         requestEarlyCancellation: {
             title: 'Request early cancellation',

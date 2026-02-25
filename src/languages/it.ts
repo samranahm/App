@@ -8100,7 +8100,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             changesBasedOn: "Questo cambia in base all'utilizzo della tua Carta Expensify e alle opzioni di abbonamento qui sotto.",
             collectBillingDescription: 'Gli spazi di lavoro Collect vengono fatturati mensilmente per membro, senza impegno annuale.',
             pricing: 'Prezzi',
-            collectPricing: ({price}: {price: string}) => `${price} per membro al mese`,
         },
         requestEarlyCancellation: {
             title: 'Richiedi annullamento anticipato',

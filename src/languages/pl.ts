@@ -8064,7 +8064,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             changesBasedOn: 'To się zmienia w zależności od korzystania z Karty Expensify i poniższych opcji subskrypcji.',
             collectBillingDescription: 'Przestrzenie robocze Collect są rozliczane miesięcznie za każdego członka, bez rocznego zobowiązania.',
             pricing: 'Cennik',
-            collectPricing: ({price}: {price: string}) => `${price} za członka miesięcznie`,
         },
         requestEarlyCancellation: {
             title: 'Poproś o wcześniejsze anulowanie',

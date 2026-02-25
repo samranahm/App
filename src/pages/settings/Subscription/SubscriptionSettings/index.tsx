@@ -224,7 +224,7 @@ function SubscriptionSettings() {
                             />
                         </View>
                         <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.pricing')}</Text>
-                        <Text style={styles.mv1}>{translate('subscription.subscriptionSettings.collectPricing', {price: collectPriceDisplay})}</Text>
+                        <Text style={styles.mv1}>{translate('subscription.yourPlan.pricePerMemberPerMonth', {price: collectPriceDisplay})}</Text>
                         <View style={[styles.mt5, styles.mb5]}>
                             <OptionItem
                                 title="subscription.details.payPerUse"

@@ -8077,7 +8077,6 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Kaart en de abonnementsopties hieronder.',
             collectBillingDescription: 'Collect-werkruimtes worden maandelijks per lid gefactureerd, zonder jaarlijkse verplichting.',
             pricing: 'Prijzen',
-            collectPricing: ({price}: {price: string}) => `${price} per lid per maand`,
         },
         requestEarlyCancellation: {
             title: 'Vroegtijdige annulering aanvragen',
