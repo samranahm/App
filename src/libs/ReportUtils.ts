@@ -2626,7 +2626,7 @@ function getHelpPaneReportType(report: OnyxEntry<Report>, conciergeReportID: str
  * Checks if a report contains only Non-Reimbursable transactions
  */
 function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, transactionsParam?: Transaction[]): boolean {
-    const transactions = transactionsParam ? transactionsParam : getReportTransactions(iouReportID);
+    const transactions = transactionsParam ?? getReportTransactions(iouReportID);
     if (!transactions || transactions.length === 0) {
         return false;
     }
