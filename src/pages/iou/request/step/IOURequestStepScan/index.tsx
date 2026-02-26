@@ -45,7 +45,6 @@ import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import ReceiptPreviews from './ReceiptPreviews';
 import type IOURequestStepScanProps from './types';
-import useDragAndDropSupport from './useDragAndDropSupport';
 import useReceiptScan from './useReceiptScan';
 
 function IOURequestStepScan({
@@ -63,7 +62,7 @@ function IOURequestStepScan({
     const theme = useTheme();
     const styles = useThemeStyles();
     const isMobileWeb = isMobile();
-    const canUseDragAndDrop = useDragAndDropSupport();
+    const canUseDragAndDrop = !isMobileWeb;
     const {translate} = useLocalize();
     const {isDraggingOver} = useDragAndDropState();
     const [cameraPermissionState, setCameraPermissionState] = useState<PermissionState | undefined>('prompt');
