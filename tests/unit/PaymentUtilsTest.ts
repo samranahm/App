@@ -107,7 +107,7 @@ describe('PaymentUtils', () => {
             expect(result.policyFromPaymentMethod).toBeUndefined();
         });
 
-        it('should set shouldSelectPaymentMethod to true when latestBankItems is not empty', () => {
+        it('should set shouldSelectPaymentMethod to true when businessBankAccountOptions is not empty', () => {
             const result = getActivePaymentType(undefined, [], [bankItem]);
 
             expect(result.paymentType).toBe(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);

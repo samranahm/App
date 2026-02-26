@@ -12,6 +12,7 @@ import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {AccountData} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -19,6 +20,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {ACHAccount} from '@src/types/onyx/Policy';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './actions/BankAccounts';
 import {approveMoneyRequest} from './actions/IOU';
+import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
@@ -42,6 +44,15 @@ type SelectPaymentTypeParams = {
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     betas: OnyxEntry<Beta[]>;
+};
+
+type BusinessBankAccountOption = {
+    text: string;
+    description: string;
+    icon: PaymentMethod['icon'];
+    iconStyles: PaymentMethod['iconStyles'];
+    iconSize: PaymentMethod['iconSize'];
+    methodID: number | undefined;
 };
 
 /**
@@ -127,6 +138,27 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     }
 
     return combinedPaymentMethods;
+}
+
+/**
+ * Returns all valid business bank accounts for the pay menu.
+ * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
+ */
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[]): BusinessBankAccountOption[] {
+    return formattedPaymentMethods
+        .filter((method) => {
+            const accountData = method?.accountData as AccountData | undefined;
+            const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
+            return accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isPartiallySetup;
+        })
+        .map((formattedPaymentMethod) => ({
+            text: formattedPaymentMethod?.title ?? '',
+            description: formattedPaymentMethod?.description ?? '',
+            icon: formattedPaymentMethod?.icon,
+            iconStyles: formattedPaymentMethod?.iconStyles,
+            iconSize: formattedPaymentMethod?.iconSize,
+            methodID: formattedPaymentMethod?.methodID,
+        }));
 }
 
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {
@@ -221,9 +253,14 @@ const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is Payment
 
 /**
  * Get the appropriate payment type, policy from context (policy related to payment type), policy from payment method, and whether a payment method should be selected
- * based on the provided payment method, active admin policies, and latest bank items.
+ * based on the provided payment method, active admin policies, and valid business bank account options.
  */
-function getActivePaymentType(paymentMethod: string | undefined, activeAdminPolicies: Policy[], latestBankItems: BankAccountMenuItem[] | undefined, policyID?: string | undefined) {
+function getActivePaymentType(
+    paymentMethod: string | undefined,
+    activeAdminPolicies: Policy[],
+    businessBankAccountOptions: BankAccountMenuItem[] | undefined,
+    policyID?: string | undefined,
+) {
     const isPaymentMethod = Object.values(CONST.PAYMENT_METHODS).includes(paymentMethod as ValueOf<typeof CONST.PAYMENT_METHODS>);
 
     let paymentType;
@@ -246,7 +283,7 @@ function getActivePaymentType(paymentMethod: string | undefined, activeAdminPoli
     const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
     // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
-    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(latestBankItems));
+    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
 
     return {
         paymentType,
@@ -260,10 +297,11 @@ export {
     hasExpensifyPaymentMethod,
     getPaymentMethodDescription,
     formatPaymentMethods,
+    getBusinessBankAccountOptions,
     calculateWalletTransferBalanceFee,
     handleUnvalidatedAccount,
     selectPaymentType,
     isSecondaryActionAPaymentOption,
     getActivePaymentType,
 };
-export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams};
+export type {KYCFlowEvent, TriggerKYCFlow, PaymentOrApproveOption, PaymentOption, SelectPaymentTypeParams, BusinessBankAccountOption};
