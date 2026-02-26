@@ -5,7 +5,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
@@ -42,7 +42,7 @@ type UseBulkPayOptionProps = {
 
 type UseBulkPayOptionReturnType = {
     bulkPayButtonOptions: PopoverMenuItem[] | undefined;
-    latestBankItems: BankAccountMenuItem[] | undefined;
+    businessBankAccountOptions: BankAccountMenuItem[] | undefined;
 };
 
 /**
@@ -84,25 +84,6 @@ function useBulkPayOptions({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
 
-    function getLatestBankAccountItem() {
-        if (!policy?.achAccount?.bankAccountID) {
-            return;
-        }
-        const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
-
-        return policyBankAccounts.map((formattedPaymentMethod) => {
-            const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
-
-            return {
-                text: title ?? '',
-                description: description ?? '',
-                icon: typeof icon === 'number' ? icons.Bank : icon,
-                methodID,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            };
-        });
-    }
-
     const getPaymentSubItems = (payAsBusiness: boolean) => {
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
@@ -128,7 +109,17 @@ function useBulkPayOptions({
             }));
     };
 
-    const latestBankItems = getLatestBankAccountItem();
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptions =
+        shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
+            ? businessBankAccountOptionList.map((account) => ({
+                  text: account.text,
+                  description: account.description,
+                  icon: account.icon,
+                  methodID: account.methodID,
+                  value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+              }))
+            : undefined;
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
@@ -140,7 +131,42 @@ function useBulkPayOptions({
         bulkPayButtonOptions = [];
 
         if (shouldShowBusinessBankAccountOptions) {
-            bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+            if (businessBankAccountOptionList.length === 0) {
+                bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+            } else if (businessBankAccountOptionList.length === 1) {
+                const account = businessBankAccountOptionList.at(0);
+                if (account) {
+                    bulkPayButtonOptions.push({
+                        ...paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT],
+                        text: account.text,
+                        description: account.description,
+                        icon: account.icon,
+                        additionalData: {
+                            methodID: account.methodID,
+                            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                        },
+                    });
+                }
+            } else {
+                bulkPayButtonOptions.push({
+                    text: translate('iou.settleBusiness', formattedAmount),
+                    icon: icons.Building,
+                    key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                    subMenuItems: businessBankAccountOptionList.map((account) => ({
+                        text: account.text,
+                        description: account.description,
+                        icon: account.icon,
+                        iconStyles: account.iconStyles,
+                        iconHeight: account.iconSize,
+                        iconWidth: account.iconSize,
+                        key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                        additionalData: {
+                            methodID: account.methodID,
+                            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                        },
+                    })),
+                });
+            }
         }
 
         if (canUseWallet) {
@@ -223,7 +249,7 @@ function useBulkPayOptions({
 
     return {
         bulkPayButtonOptions,
-        latestBankItems,
+        businessBankAccountOptions,
     };
 }
 
