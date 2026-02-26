@@ -1297,7 +1297,7 @@ function handleBulkPayItemSelected(params: {
     isAccountLocked: boolean;
     showLockedAccountModal: () => void;
     policy: OnyxEntry<Policy>;
-    latestBankItems: BankAccountMenuItem[] | undefined;
+    businessBankAccountOptions: BankAccountMenuItem[] | undefined;
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
@@ -1310,14 +1310,14 @@ function handleBulkPayItemSelected(params: {
         isAccountLocked,
         showLockedAccountModal,
         policy,
-        latestBankItems,
+        businessBankAccountOptions,
         activeAdminPolicies,
         isUserValidated,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
-    const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems, policy?.id);
+    const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
     if (!isValidBulkPayOption(item) && !policyFromPaymentMethod) {
         return;

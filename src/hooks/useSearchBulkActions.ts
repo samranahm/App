@@ -180,7 +180,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
 
-    const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
+    const {bulkPayButtonOptions, businessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
@@ -578,14 +578,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                 }
             }
-            const paymentAdditionalData = (additionalData as Partial<PaymentData>) ?? {};
+            const paymentAdditionalData = (additionalData as Partial<PaymentData> & {methodID?: number}) ?? {};
+            const expenseReportBankAccountID = paymentAdditionalData?.bankAccountID ?? paymentAdditionalData?.methodID;
             const paymentData = (
                 selectedReports.length
                     ? selectedReports.map((report) => {
+                          const effectivePaymentType =
+                              getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(report.reportID)) ?? paymentMethod;
                           return {
                               reportID: report.reportID,
                               amount: report.total,
-                              paymentType: getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(report.reportID)) ?? paymentMethod,
+                              paymentType: effectivePaymentType,
                               ...(isInvoiceReport(report.reportID)
                                   ? getPayMoneyOnSearchInvoiceParams(
                                         report.policyID,
@@ -594,22 +597,31 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                                     )
                                   : {}),
+                              ...(isExpenseReportUtil(report.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
+                                  ? {bankAccountID: expenseReportBankAccountID}
+                                  : {}),
                           };
                       })
-                    : Object.values(selectedTransactions).map((transaction) => ({
-                          reportID: transaction.reportID,
-                          amount: transaction.amount,
-                          paymentType:
-                              getLastPolicyPaymentMethod(transaction.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(transaction.reportID)) ?? paymentMethod,
-                          ...(isInvoiceReport(transaction.reportID)
-                              ? getPayMoneyOnSearchInvoiceParams(
-                                    transaction.policyID,
-                                    paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
-                                    paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
-                                    CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                                )
-                              : {}),
-                      }))
+                    : Object.values(selectedTransactions).map((transaction) => {
+                          const effectivePaymentType =
+                              getLastPolicyPaymentMethod(transaction.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(transaction.reportID)) ?? paymentMethod;
+                          return {
+                              reportID: transaction.reportID,
+                              amount: transaction.amount,
+                              paymentType: effectivePaymentType,
+                              ...(isInvoiceReport(transaction.reportID)
+                                  ? getPayMoneyOnSearchInvoiceParams(
+                                        transaction.policyID,
+                                        paymentAdditionalData?.payAsBusiness ?? isBusinessInvoiceRoom(transaction.reportID),
+                                        paymentAdditionalData?.bankAccountID ?? getLastPolicyBankAccountID(transaction.policyID, lastPaymentMethods),
+                                        CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
+                                    )
+                                  : {}),
+                              ...(isExpenseReportUtil(transaction.reportID) && effectivePaymentType === CONST.IOU.PAYMENT_TYPE.VBBA && expenseReportBankAccountID != null
+                                  ? {bankAccountID: expenseReportBankAccountID}
+                                  : {}),
+                          };
+                      })
             ) as PaymentData[];
 
             payMoneyRequestOnSearch(hash, paymentData);
@@ -1083,7 +1095,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedPolicyIDs,
         selectedTransactionReportIDs,
         selectedReportIDs,
-        latestBankItems,
+        businessBankAccountOptions,
         confirmPayment: stableOnBulkPaySelected,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
