@@ -466,7 +466,7 @@ function IOURequestStepScan({
                             mirrored={false}
                             screenshotQuality={0}
                         />
-                        {canUseMultiScan && isMobileWeb ? (
+                        {canUseMultiScan ? (
                             <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, isFlashLightOn && styles.bgGreenSuccess, !isTorchAvailable && styles.opacity0]}>
                                 <PressableWithFeedback
                                     role={CONST.ROLE.BUTTON}
@@ -531,7 +531,7 @@ function IOURequestStepScan({
                         height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
-                {canUseMultiScan && isMobileWeb ? (
+                {canUseMultiScan ? (
                     <PressableWithFeedback
                         accessibilityRole="button"
                         role={CONST.ROLE.BUTTON}
@@ -565,7 +565,7 @@ function IOURequestStepScan({
                     </PressableWithFeedback>
                 )}
             </View>
-            {canUseMultiScan && isMobileWeb && shouldShowMultiScanEducationalPopup && (
+            {canUseMultiScan && shouldShowMultiScanEducationalPopup && (
                 <FeatureTrainingModal
                     title={translate('iou.scanMultipleReceipts')}
                     image={lazyIllustrations.MultiScan}
