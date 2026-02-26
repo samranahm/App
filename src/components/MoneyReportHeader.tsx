@@ -624,6 +624,7 @@ function MoneyReportHeader({
                     activePolicy,
                     policy,
                     betas,
+                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
