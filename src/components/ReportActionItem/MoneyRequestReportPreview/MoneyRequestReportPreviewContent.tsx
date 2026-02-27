@@ -11,7 +11,6 @@ import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import DecisionModal from '@components/DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import type {PaymentMethod} from '@components/KYCWall/types';
@@ -31,6 +30,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
@@ -178,7 +178,7 @@ function MoneyRequestReportPreviewContent({
     const {showConfirmModal} = useConfirmModal();
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const [nonReimbursablePaymentErrorModalVisible, setNonReimbursablePaymentErrorModalVisible] = useState(false);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
@@ -261,8 +261,8 @@ function MoneyRequestReportPreviewContent({
             if (!type) {
                 return;
             }
-            if (!isInvoiceReportUtils(iouReport) && hasOnlyNonReimbursableTransactions(iouReport?.reportID) && type !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                setNonReimbursablePaymentErrorModalVisible(true);
+            if (shouldBlockDirectPayment(type)) {
+                showNonReimbursablePaymentErrorModal();
                 return;
             }
             setPaymentType(type);
@@ -309,6 +309,8 @@ function MoneyRequestReportPreviewContent({
             iouReport,
             chatReport,
             showDelegateNoAccessModal,
+            showNonReimbursablePaymentErrorModal,
+            shouldBlockDirectPayment,
             startAnimation,
             iouReportNextStep,
             introSelected,
@@ -996,19 +998,11 @@ function MoneyRequestReportPreviewContent({
                                 startAnimation();
                             }
                         }}
-                        onNonReimbursablePaymentError={() => setNonReimbursablePaymentErrorModalVisible(true)}
+                        onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                     />
                 )}
             </OfflineWithFeedback>
-            <DecisionModal
-                title={translate('iou.error.nonReimbursablePayment')}
-                prompt={translate('iou.error.nonReimbursablePaymentDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setNonReimbursablePaymentErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={nonReimbursablePaymentErrorModalVisible}
-                onClose={() => setNonReimbursablePaymentErrorModalVisible(false)}
-            />
+            {nonReimbursablePaymentErrorDecisionModal}
         </View>
     );
 }

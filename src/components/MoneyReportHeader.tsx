@@ -18,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
@@ -448,7 +449,7 @@ function MoneyReportHeader({
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
-    const [nonReimbursablePaymentErrorModalVisible, setNonReimbursablePaymentErrorModalVisible] = useState(false);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport);
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
@@ -591,8 +592,8 @@ function MoneyReportHeader({
             if (!type || !chatReport) {
                 return;
             }
-            if (!isInvoiceReportUtil(moneyRequestReport) && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID) && type !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-                setNonReimbursablePaymentErrorModalVisible(true);
+            if (shouldBlockDirectPayment(type)) {
+                showNonReimbursablePaymentErrorModal();
                 return;
             }
             setPaymentType(type);
@@ -654,6 +655,8 @@ function MoneyReportHeader({
             isAnyTransactionOnHold,
             isInvoiceReport,
             showDelegateNoAccessModal,
+            showNonReimbursablePaymentErrorModal,
+            shouldBlockDirectPayment,
             startAnimation,
             moneyRequestReport,
             nextStep,
@@ -1943,7 +1946,7 @@ function MoneyReportHeader({
                         }
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
-                    onNonReimbursablePaymentError={() => setNonReimbursablePaymentErrorModalVisible(true)}
+                    onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                 />
             )}
             <DecisionModal
@@ -2003,15 +2006,7 @@ function MoneyReportHeader({
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
             />
-            <DecisionModal
-                title={translate('iou.error.nonReimbursablePayment')}
-                prompt={translate('iou.error.nonReimbursablePaymentDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setNonReimbursablePaymentErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={nonReimbursablePaymentErrorModalVisible}
-                onClose={() => setNonReimbursablePaymentErrorModalVisible(false)}
-            />
+            {nonReimbursablePaymentErrorDecisionModal}
             <Modal
                 onClose={() => {
                     setIsPDFModalVisible(false);
