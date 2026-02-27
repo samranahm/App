@@ -7,7 +7,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {BankAccountMenuItem, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
+import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import * as API from '@libs/API';
 import {waitForWrites} from '@libs/API';
@@ -1290,6 +1290,8 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
 
 /**
  * Handles the click event when user selects bulk pay action.
+ * When triggering KYC for VBBA with a specific bank account selected, call setPendingPaymentAdditionalData
+ * so that onSuccessfulKYC can pass the selected account methodID to confirmPayment.
  */
 function handleBulkPayItemSelected(params: {
     item: PopoverMenuItem;
@@ -1302,7 +1304,8 @@ function handleBulkPayItemSelected(params: {
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: () => void;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: BulkPaySelectionData) => void;
+    setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
 }) {
     const {
         item,
@@ -1316,6 +1319,7 @@ function handleBulkPayItemSelected(params: {
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
         confirmPayment,
+        setPendingPaymentAdditionalData,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
@@ -1344,6 +1348,7 @@ function handleBulkPayItemSelected(params: {
     }
 
     if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        setPendingPaymentAdditionalData?.(item?.additionalData as BulkPaySelectionData | undefined);
         triggerKYCFlow({
             event: undefined,
             iouPaymentType: paymentType,
@@ -1357,7 +1362,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData);
+    confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
 }
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
