@@ -80,21 +80,32 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     );
 
     if (wasSubmittedViaHarvesting) {
+        // Split the translated string into inline parts to support languages with different word order
+        const messageSplitByAnchor = message.match(CONST.REGEX_ANCHOR_WITH_TEXT);
+        const messagePrefix = messageSplitByAnchor ? (messageSplitByAnchor.at(1) ?? '') : message;
+        const anchorHref = messageSplitByAnchor ? (messageSplitByAnchor.at(2) ?? '') : '';
+        const anchorLabel = messageSplitByAnchor ? (messageSplitByAnchor.at(3) ?? '') : '';
+        const messageSuffix = messageSplitByAnchor ? (messageSplitByAnchor.at(4) ?? '') : '';
+
         return (
             <ReportActionItemBasicMessage>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap]}>
+                    {!!messagePrefix && (
+                        <TextBlock
+                            textStyles={[styles.chatItemMessage, styles.colorMuted]}
+                            text={messagePrefix}
+                        />
+                    )}
+                    {!!anchorLabel && (
+                        <TextLinkBlock
+                            onPress={() => openLink(anchorHref, environmentURL)}
+                            style={[styles.chatItemMessage, styles.link]}
+                            text={anchorLabel}
+                        />
+                    )}
                     <TextBlock
                         textStyles={[styles.chatItemMessage, styles.colorMuted]}
-                        text={translate('iou.submittedVia')}
-                    />
-                    <TextLinkBlock
-                        onPress={() => openLink(CONST.SELECT_WORKFLOWS_HELP_URL, environmentURL)}
-                        style={[styles.chatItemMessage, styles.link]}
-                        text={translate('iou.delaySubmissions')}
-                    />
-                    <TextBlock
-                        textStyles={[styles.chatItemMessage, styles.colorMuted]}
-                        text=". "
+                        text={`${messageSuffix}. `}
                     />
                     {explainAndIconBlock}
                 </View>

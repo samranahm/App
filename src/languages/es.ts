@@ -1168,8 +1168,6 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
-        submittedVia: 'envió mediante ',
-        delaySubmissions: 'retrasar envíos',
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         queuedToApproveViaDEW: 'en cola para aprobar a través del flujo de aprobación personalizado',
         trackedAmount: (formattedAmount, comment) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
