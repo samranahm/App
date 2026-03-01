@@ -182,16 +182,13 @@ describe('PureReportActionItem', () => {
         });
     });
 
-    describe('Submitted via harvesting with AI Explain', () => {
+    describe('Submitted via harvesting with Explain', () => {
         afterEach(() => {
-            jest.restoreAllMocks();
             (openLink as jest.Mock).mockClear();
         });
 
         it('renders message parts inline and shows Explain button when action has reasoning', async () => {
-            jest.spyOn(ReportActionUtils, 'hasReasoning').mockReturnValue(true);
-
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true, reasoning: 'Test reasoning'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
@@ -211,9 +208,7 @@ describe('PureReportActionItem', () => {
         });
 
         it('clicking the delay submissions link opens SELECT_WORKFLOWS_HELP_URL', async () => {
-            jest.spyOn(ReportActionUtils, 'hasReasoning').mockReturnValue(true);
-
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true});
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {harvesting: true, reasoning: 'Test reasoning'});
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
