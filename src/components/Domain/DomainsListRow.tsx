@@ -45,13 +45,11 @@ function DomainsListRow({title, isHovered, badgeText, isDomainVerified, brickRoa
                     fill={theme.icon}
                     additionalStyles={styles.domainIcon}
                 />
-                <View style={styles.flex1}>
-                    <TextWithTooltip
-                        text={title}
-                        shouldShowTooltip
-                        style={styles.textStrong}
-                    />
-                </View>
+                <TextWithTooltip
+                    text={title}
+                    shouldShowTooltip
+                    style={[styles.textStrong, styles.flexShrink1]}
+                />
 
                 {!!badgeText && (
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
