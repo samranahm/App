@@ -56,6 +56,13 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     const {translate} = useLocalize();
     const {isAdmin, isValidated, action} = item;
 
+    const badgeText = (() => {
+        if (!isAdmin) {
+            return undefined;
+        }
+        return isValidated ? translate('common.verified') : translate('domain.notVerified');
+    })();
+
     const threeDotsMenuItems: PopoverMenuItem[] | undefined = useMemo(
         () =>
             isAdmin
@@ -93,7 +100,8 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 {({hovered}) => (
                     <DomainsListRow
                         title={item.title}
-                        badgeText={isAdmin && !isValidated ? translate('domain.notVerified') : undefined}
+                        badgeText={badgeText}
+                        isDomainVerified={isValidated}
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
                         brickRoadIndicator={item.brickRoadIndicator}
