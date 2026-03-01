@@ -15,6 +15,7 @@ import {openLink} from '@libs/actions/Link';
 import {explain} from '@libs/actions/Report';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {Report, ReportAction} from '@src/types/onyx';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 
@@ -30,13 +31,16 @@ type ReportActionItemMessageWithExplainProps = {
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
+
+    /** Whether the report was submitted via delay submissions */
+    wasSubmittedViaHarvesting?: boolean;
 };
 
 /**
  * Wrapper component that renders a message and automatically appends the "Explain" link
  * if the action has reasoning.
  */
-function ReportActionItemMessageWithExplain({message, action, childReport, originalReport}: ReportActionItemMessageWithExplainProps) {
+function ReportActionItemMessageWithExplain({message, action, childReport, originalReport, wasSubmittedViaHarvesting = false}: ReportActionItemMessageWithExplainProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -59,6 +63,45 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         );
     }
 
+    const explainAndIconBlock = (
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <TextLinkBlock
+                onPress={() => explain(childReport, originalReport, action, translate, personalDetail.accountID, personalDetail?.timezone)}
+                style={[styles.chatItemMessage, styles.link, styles.mrHalf]}
+                text={translate('common.explain')}
+            />
+            <Icon
+                src={icons.Sparkles}
+                width={variables.iconSizeExtraSmall}
+                height={variables.iconSizeExtraSmall}
+                fill={theme.link}
+            />
+        </View>
+    );
+
+    if (wasSubmittedViaHarvesting) {
+        return (
+            <ReportActionItemBasicMessage>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap]}>
+                    <TextBlock
+                        textStyles={[styles.chatItemMessage, styles.colorMuted]}
+                        text={translate('iou.submittedVia')}
+                    />
+                    <TextLinkBlock
+                        onPress={() => openLink(CONST.SELECT_WORKFLOWS_HELP_URL, environmentURL)}
+                        style={[styles.chatItemMessage, styles.link]}
+                        text={translate('iou.delaySubmissions')}
+                    />
+                    <TextBlock
+                        textStyles={[styles.chatItemMessage, styles.colorMuted]}
+                        text=". "
+                    />
+                    {explainAndIconBlock}
+                </View>
+            </ReportActionItemBasicMessage>
+        );
+    }
+
     return (
         <ReportActionItemBasicMessage>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexWrap]}>
@@ -66,19 +109,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
                     textStyles={[styles.chatItemMessage, styles.colorMuted]}
                     text={`${message}. `}
                 />
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <TextLinkBlock
-                        onPress={() => explain(childReport, originalReport, action, translate, personalDetail.accountID, personalDetail?.timezone)}
-                        style={[styles.chatItemMessage, styles.link, styles.mrHalf]}
-                        text={translate('common.explain')}
-                    />
-                    <Icon
-                        src={icons.Sparkles}
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
-                        fill={theme.link}
-                    />
-                </View>
+                {explainAndIconBlock}
             </View>
         </ReportActionItemBasicMessage>
     );

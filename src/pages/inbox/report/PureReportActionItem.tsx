@@ -1338,6 +1338,7 @@ function PureReportActionItem({
                         action={action}
                         childReport={childReport}
                         originalReport={originalReport}
+                        wasSubmittedViaHarvesting
                     />
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
