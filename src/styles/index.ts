@@ -5062,6 +5062,7 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             flexGrow: 1,
             flexShrink: 1,
+            flexBasis: '35%',
         },
 
         checkboxWithLabelCheckboxStyle: {
