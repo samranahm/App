@@ -1,3 +1,22 @@
 {
-    "watchers": {}
+    "watchers": {
+        "92859": {
+            "number": 92859,
+            "title": "[Exploratory] Invoice - Add bank account creates a new workspace on every attempt",
+            "url": "https://github.com/Expensify/App/issues/92859",
+            "postedAt": "2026-06-06T11:27:24Z",
+            "watcherTitle": "Expensify Watcher #92859",
+            "startedAt": "2026-06-06T12:18:20.078Z",
+            "status": "watching"
+        },
+        "92861": {
+            "number": 92861,
+            "title": "[Exploratory] iOS - Hold - Approve only the unheld amount offline, Approve button display on the approved report",
+            "url": "https://github.com/Expensify/App/issues/92861",
+            "postedAt": "2026-06-06T11:44:25Z",
+            "watcherTitle": "Expensify Watcher #92861",
+            "startedAt": "2026-06-06T12:18:20.012Z",
+            "status": "watching"
+        }
+    }
 }
