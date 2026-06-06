@@ -1,0 +1,32 @@
+{
+    "name": "Expensify Help Wanted watcher",
+    "description": "Watch new Expensify/App issues for the Help Wanted label (up to 15 min). Notify on Slack and draft a proposal. Log ignored issues to CSV.",
+    "workflow": {
+        "triggers": [
+            {
+                "cron": {
+                    "cron": "*/2 * * * *"
+                }
+            }
+        ],
+        "actions": [
+            {
+                "slack": {}
+            }
+        ],
+        "prompts": [
+            {
+                "prompt": "You are the Expensify Help Wanted watcher. This runs every 2 minutes.\n\nSTEP 1 — Run the watcher script:\n  npx ts-node scripts/watchExpensifyHelpWanted.ts\n\nSTEP 2 — Read the JSON output from the script.\n\nSTEP 3 — For each issue in \"helpWantedFound\":\n  a. Read the GitHub issue: gh issue view <number> --repo Expensify/App\n  b. Read proposals/automation/PROPOSAL_AGENT_INSTRUCTIONS.md\n  c. Investigate the codebase to find the real root cause\n  d. Write a proposal to proposals/<issue-number>.md following the format and rules in PROPOSAL_AGENT_INSTRUCTIONS.md\n  e. Send me a Slack message with:\n     - Issue title and number\n     - Link to the issue\n     - One-line summary of the root cause\n     - Path to the draft proposal file\n     - Reminder: \"Review before posting — do not post to GitHub automatically\"\n\nSTEP 4 — For each issue in \"ignored\":\n  Do nothing extra (already logged to proposals/automation/ignored-issues.csv).\n  Optionally send a short Slack note listing ignored issue numbers this run.\n\nSTEP 5 — For issues in \"stillWatching\":\n  Do nothing. They are still within the 15-minute watch window.\n\nRULES:\n- Never post proposals to GitHub automatically.\n- Use simple plain English in proposals. No jargon or hard abbreviations.\n- Use file names only in proposal text (e.g. PersonalCardDetailsHeaderMenu.tsx), not full paths.\n- GitHub code links must use https://github.com/Expensify/App/blob/main/... never personal forks.\n- Skip issues that already have proposals/<number>.md unless the issue changed.\n- Read watch-state.json and ignored-issues.csv for current state."
+            }
+        ],
+        "model": "",
+        "gitConfig": {
+            "repo": "samranahm/App",
+            "branch": "main"
+        },
+        "agentOptions": {
+            "skipInstall": false
+        },
+        "memoryEnabled": true
+    }
+}
