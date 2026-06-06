@@ -1,14 +1,21 @@
 {
-    "highestSeenIssueNumber": 92856,
+    "highestSeenIssueNumber": 92861,
     "watching": [
         {
-            "number": 92856,
-            "title": "[Exploratory] 92792-Rules-Expense rules has different behavior for updated category and tag",
-            "url": "https://github.com/Expensify/App/issues/92856",
-            "postedAt": "2026-06-06T10:15:26Z",
-            "firstSeenAt": "2026-06-06T10:18:37.485Z"
+            "number": 92861,
+            "title": "[Exploratory] 92792-iOS-Hold-Approve only the unheld amount offline, Approve button display on the approved report",
+            "url": "https://github.com/Expensify/App/issues/92861",
+            "postedAt": "2026-06-06T11:44:25Z",
+            "firstSeenAt": "2026-06-06T11:45:08.292Z"
+        },
+        {
+            "number": 92859,
+            "title": "[Exploratory] Invoice - Add bank account creates a new workspace on every attempt",
+            "url": "https://github.com/Expensify/App/issues/92859",
+            "postedAt": "2026-06-06T11:27:24Z",
+            "firstSeenAt": "2026-06-06T11:45:08.292Z"
         }
     ],
     "processed": [],
-    "lastRunAt": "2026-06-06T10:18:37.485Z"
+    "lastRunAt": "2026-06-06T11:45:08.292Z"
 }
