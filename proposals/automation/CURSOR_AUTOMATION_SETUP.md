@@ -1,140 +1,139 @@
-# Expensify Help Wanted watcher — Cursor Automation setup
+# Expensify Help Wanted watcher — setup guide
 
-This automation watches **new** Expensify issues only. It waits up to **15 minutes** for Melvin to add the `Help Wanted` label, then notifies you on Slack and drafts a proposal. Issues that never get the label are logged to `ignored-issues.csv` (opens in Excel).
-
-## How it works
+## Your flow
 
 ```
-New issue posted on Expensify/App
+1. New issue posted on Expensify/App
         ↓
-Watcher picks it up (runs every 2 minutes)
+2. Slack notification immediately:
+   "Expensify Watcher #92857 is now running (15 min)"
         ↓
-Watch for up to 15 minutes
+3. Excel row added to issue-tracker.csv
+        ↓
+4. Watcher runs for 15 minutes
         ↓
    ┌────┴────┐
    ↓         ↓
-Help Wanted   No label after 15 min
-applied       → log to ignored-issues.csv, stop watching
+Help Wanted   No label in 15 min
+applied       → is_proposal_posted = no
+   ↓          → notes = "Label not applied in 15 minutes"
+Draft proposal
    ↓
-Slack notify you
-   ↓
-Agent drafts proposal → proposals/<issue-number>.md
-   ↓
-You review and post manually
+5. Slack notification:
+   "Proposal ready to review — see proposals/92857.md"
+        ↓
+6. You review and post manually to GitHub
 ```
 
-## Files
+## Excel tracker (`issue-tracker.csv`)
 
-| File | Purpose |
-|------|---------|
-| `scripts/watchExpensifyHelpWanted.ts` | Watcher logic (detect, wait, ignore) |
-| `proposals/automation/watch-state.json` | Tracks which issues we are watching |
-| `proposals/automation/ignored-issues.csv` | Excel-friendly log of ignored issues |
-| `proposals/automation/PROPOSAL_AGENT_INSTRUCTIONS.md` | Rules + format for writing proposals |
-| `proposals/<issue-number>.md` | Draft proposals (one per issue) |
+Opens in Excel. Columns:
 
-## Before you start
+| Column | Description |
+|--------|-------------|
+| `issue_number` | GitHub issue number |
+| `issue_title` | Issue title |
+| `issue_url` | Link to issue |
+| `posted_at` | When issue was posted |
+| `help_wanted_applied_at` | When Help Wanted label was applied (empty if never) |
+| `is_proposal_posted` | `yes` if proposal drafted, `no` if not |
+| `notes` | `Watcher running` / `Proposal drafted` / `Label not applied in 15 minutes` |
 
-1. Install GitHub CLI: `brew install gh` then `gh auth login`
-2. Optional: set `GITHUB_TOKEN` for higher API rate limits
-3. Connect **Slack** in Cursor (cursor.com → Integrations)
-4. Open this project in Cursor with the **Agents Window** (needed to create automations)
+## Slack setup (personal workspace)
 
----
+### Option A — Incoming Webhook (for script notifications)
 
-## Open the Automations editor (prefilled draft)
+1. Slack → **Apps** → **Incoming Webhooks** → **Add to Slack**
+2. Pick your channel or DM
+3. Copy the webhook URL
+4. Add the webhook URL as a secret (see **Where to add secrets** below — it is NOT inside the automation editor).
 
-A ready-to-import draft is saved at:
+Script sends notifications for:
+- Watcher started (new issue)
+- Watcher closed (no label)
+- Proposal ready (after drafting)
 
-**`proposals/automation/prefill-workflow.json`**
+### Option B — Cursor Slack integration (for agent messages)
 
-### How to open it
+1. Cursor → Integrations → **Slack** → Connect your personal workspace
+2. In Automations editor, enable **Post to Slack** and pick your channel
+3. Agent sends "Proposal ready" message after drafting
 
-1. Open the **Agents Window** in Cursor (not regular chat).
-2. Go to **Automations** → **New automation**.
-3. Ask the agent: *"Open the Automations editor with the draft from proposals/automation/prefill-workflow.json"*
-4. Or copy the settings below manually into the editor.
-
-### After the editor opens — finish these in the UI
-
-- [ ] **Slack channel** — pick your DM or a private channel (e.g. `#expensify-proposals`)
-- [ ] **Cloud agent** — enable if you want it to run while Cursor is closed
-- [ ] **GitHub token** — add `GITHUB_TOKEN` secret if rate limits hit (optional)
-- [ ] **Push your automation files** — commit `scripts/watchExpensifyHelpWanted.ts` and `proposals/automation/` to `samranahm/App` on `main` so the cloud agent can access them
+Use **both** for best coverage: webhook for instant watcher alerts, Cursor Slack for proposal-ready message.
 
 ---
 
-## Cursor Automation draft
+## Scripts
 
-Create this in the Cursor Automations editor (Agents Window → Automations → New).
+| Script | When it runs |
+|--------|--------------|
+| `orchestrateExpensifyWatchers.ts` | Every 2 min — discover + start watchers + Slack + Excel |
+| `notifyProposalReady.ts` | After proposal drafted — updates Excel + Slack |
+| `watchExpensifyIssue.ts <n>` | Dedicated 15-min watcher (local `--spawn` mode) |
+
+## Cursor Automation
 
 | Setting | Value |
 |---------|-------|
-| **Name** | Expensify Help Wanted watcher |
-| **Description** | Watch new Expensify issues for Help Wanted label, notify on Slack, draft proposal |
-| **Trigger** | Every 2 minutes (cron: `*/2 * * * *`) |
-| **Tools** | Post to Slack, read/write files in repo |
-| **Repo** | Your local Expensify/App checkout |
+| **Name** | Expensify Issue Discovery |
+| **Trigger** | Every 2 minutes |
+| **Tools** | Post to Slack |
+| **Secret** | `SLACK_WEBHOOK_URL` (in Cloud Agents dashboard, not in automation editor) |
+| **Entry** | `npx ts-node scripts/orchestrateExpensifyWatchers.ts` |
 
-### Agent instructions (paste into the automation prompt)
-
-```
-You are the Expensify Help Wanted watcher. Run every 2 minutes.
-
-STEP 1 — Run the watcher script:
-  npx ts-node scripts/watchExpensifyHelpWanted.ts
-
-STEP 2 — Read the JSON output.
-
-STEP 3 — For each issue in "helpWantedFound":
-  a. Read the GitHub issue (use gh issue view <number> --repo Expensify/App)
-  b. Read proposals/automation/PROPOSAL_AGENT_INSTRUCTIONS.md
-  c. Investigate the codebase to find the root cause
-  d. Write a proposal to proposals/<issue-number>.md following the format and rules
-  e. Send a Slack message to me with:
-     - Issue title and number
-     - Link to the issue
-     - One-line summary of the root cause
-     - Path to the draft proposal file
-     - Reminder: "Review before posting"
-
-STEP 4 — For each issue in "ignored":
-  Do nothing extra (already logged to proposals/automation/ignored-issues.csv).
-  Optionally send a short Slack summary if any were ignored this run.
-
-STEP 5 — For issues in "stillWatching":
-  Do nothing. They are still within the 15-minute window.
-
-RULES:
-- Never post proposals to GitHub automatically.
-- Use simple English in proposals (see PROPOSAL_AGENT_INSTRUCTIONS.md).
-- File names only in proposal text, not full paths.
-- GitHub links must use https://github.com/Expensify/App/blob/main/...
-- Skip issues already in proposals/<number>.md unless the issue changed.
-```
-
-### Slack setup
-
-In the Automations editor, enable **Post to Slack** and pick your DM or a private channel (e.g. `#expensify-proposals`).
+Prefilled draft: `proposals/automation/prefill-workflow.json`
 
 ---
 
 ## Manual test
 
-Run the watcher once by hand:
-
 ```bash
-npx ts-node scripts/watchExpensifyHelpWanted.ts
-```
+# Set Slack webhook first
+export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
 
-You should see JSON output with `helpWantedFound`, `newlyWatching`, `ignored`, and `stillWatching`.
+# Run orchestrator
+npx ts-node scripts/orchestrateExpensifyWatchers.ts
+
+# Test proposal notification
+npx ts-node scripts/notifyProposalReady.ts 92853 "Test issue" "https://github.com/Expensify/App/issues/92853"
+```
 
 ---
 
-## Tuning
+## Push to GitHub
 
-| Setting | Default | Where to change |
-|---------|---------|-----------------|
-| Watch window | 15 minutes | `WATCH_WINDOW_MS` in `scripts/watchExpensifyHelpWanted.ts` |
-| Poll interval | 2 minutes | Cron trigger in Cursor Automation |
-| Ignored log | CSV (Excel) | `proposals/automation/ignored-issues.csv` |
+Commit and push to `samranahm/App` on `main`:
+
+- `scripts/orchestrateExpensifyWatchers.ts`
+- `scripts/notifyProposalReady.ts`
+- `scripts/expensifyWatcher/`
+- `proposals/automation/`
+
+## Where to add secrets (important)
+
+**Secrets are NOT inside the Automations editor.** They live here:
+
+1. Open [cursor.com/dashboard](https://cursor.com/dashboard) → **Cloud Agents**
+2. Click **Secrets** (or **Environment** → **Secrets**)
+3. Add a new secret:
+   - **Name:** `SLACK_WEBHOOK_URL`
+   - **Value:** your Slack Incoming Webhook URL (regenerate if you shared it publicly)
+4. Save
+
+Cloud agents and automations read this as an environment variable at runtime.
+
+### If you still cannot find Secrets
+
+- Make sure you are on a **Pro or Business** plan (automations need this)
+- Try: Cursor app → **Settings** → search for **Cloud Agents** or **Secrets**
+- For **local testing only**, skip the dashboard and run:
+  ```bash
+  export SLACK_WEBHOOK_URL="your-webhook-url"
+  npx ts-node scripts/orchestrateExpensifyWatchers.ts
+  ```
+
+### You may not need the webhook at all for proposal messages
+
+If you already connected **Slack** in Cursor Integrations and enabled **Post to Slack** in your automation, the agent can send the "proposal ready" message through Cursor's Slack tool.
+
+The **webhook** is only needed for instant script alerts (watcher started / watcher closed) from `slack.ts`.
