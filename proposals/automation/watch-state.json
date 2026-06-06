@@ -1,14 +1,6 @@
 {
     "highestSeenIssueNumber": 92856,
-    "watching": [
-        {
-            "number": 92856,
-            "title": "[Exploratory] 92792-Rules-Expense rules has different behavior for updated category and tag",
-            "url": "https://github.com/Expensify/App/issues/92856",
-            "postedAt": "2026-06-06T10:15:26Z",
-            "firstSeenAt": "2026-06-06T10:18:37.485Z"
-        }
-    ],
+    "watching": [],
     "processed": [],
-    "lastRunAt": "2026-06-06T10:18:37.485Z"
+    "lastRunAt": "2026-06-06T11:59:28.297Z"
 }
