@@ -8263,6 +8263,7 @@ ${reportName}
         recentChats: '最近のチャット',
         serverResults: '検索結果',
         searchIn: '検索対象',
+        goTo: (page: string) => `${page}に移動`,
         askConcierge: (message: string) => `Concierge に「${message}」と聞く`,
         searchPlaceholder: '何かを検索...',
         suggestions: '提案',

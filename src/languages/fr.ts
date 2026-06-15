@@ -8410,6 +8410,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         recentChats: 'Discussions récentes',
         serverResults: 'Résultats de recherche',
         searchIn: 'Rechercher dans',
+        goTo: (page: string) => `Aller à ${page}`,
         askConcierge: (message: string) => `Demander à Concierge « ${message} »`,
         searchPlaceholder: 'Rechercher quelque chose...',
         suggestions: 'Suggestions',

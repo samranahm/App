@@ -8377,6 +8377,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         recentChats: 'Neueste Chats',
         serverResults: 'Suchergebnisse',
         searchIn: 'Suchen in',
+        goTo: (page: string) => `Gehe zu ${page}`,
         askConcierge: (message: string) => `Frage Concierge „${message}“`,
         searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
