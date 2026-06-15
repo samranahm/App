@@ -25,6 +25,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
+import useSearchRouterNavigationSuggestions from '@hooks/useSearchRouterNavigationSuggestions';
 import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {scrollToRight} from '@libs/InputUtils';
@@ -224,6 +225,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         ],
     );
 
+    const navigationSuggestionItems = useSearchRouterNavigationSuggestions({query: textInputValue});
+
     const searchQueryItems = textInputValue?.trim()
         ? [
               {
@@ -315,6 +318,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             };
 
             if (isSearchQueryItem(item)) {
+                if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.NAVIGATION_SUGGESTION) {
+                    backHistory(() => {
+                        item.navigationAction?.();
+                    });
+                    onRouterClose();
+                    setTextInputValue('');
+                    setAutocompleteQueryValue('');
+                    return;
+                }
+
                 if (!item.searchQuery) {
                     return;
                 }
@@ -382,6 +395,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             contextualPoliciesMap,
             contextualReportsMap,
             askConcierge,
+            setTextInputValue,
+            setAutocompleteQueryValue,
         ],
     );
 
@@ -434,6 +449,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 autocompleteQueryValue={autocompleteQueryValue || textInputValue}
                 handleSearch={searchInServer}
                 searchQueryItems={searchQueryItems}
+                navigationSuggestionItems={navigationSuggestionItems}
                 getAdditionalSections={getAdditionalSections}
                 onListItemPress={onListItemPress}
                 shouldHighlightFirstItem

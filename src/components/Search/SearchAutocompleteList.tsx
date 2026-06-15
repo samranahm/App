@@ -60,6 +60,9 @@ type SearchAutocompleteListProps = {
     /** Optional items to always display at the top of the router list */
     searchQueryItems?: SearchQueryItem[];
 
+    /** Navigation suggestions to display after the search row */
+    navigationSuggestionItems?: SearchQueryItem[];
+
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
 
@@ -144,6 +147,7 @@ function SearchAutocompleteList({
     autocompleteQueryValue,
     handleSearch,
     searchQueryItems,
+    navigationSuggestionItems,
     getAdditionalSections,
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
@@ -450,6 +454,10 @@ function SearchAutocompleteList({
             pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
+        if (navigationSuggestionItems && navigationSuggestionItems.length > 0) {
+            pushSection({data: navigationSuggestionItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
+        }
+
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
 
         if (additionalSections) {
@@ -567,6 +575,7 @@ function SearchAutocompleteList({
         recentReportsOptions,
         recentSearchesData,
         searchOptions,
+        navigationSuggestionItems,
         searchQueryItems,
         styles,
         translate,

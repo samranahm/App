@@ -1,14 +1,17 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem, ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
-import type CONST from '@src/CONST';
+import type {NavigationSuggestionWorkspaceAvatar} from '@libs/SearchRouterNavigationUtils';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
@@ -20,6 +23,12 @@ type SearchQueryItem = ListItem & {
     autocompleteID?: string;
     roomType?: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
     mapKey?: string;
+    navigationAction?: () => void;
+    navigationContextType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_NAVIGATION_CONTEXT>;
+    parentTabTitle?: string;
+    parentTabIcon?: IconAsset;
+    workspaceAvatar?: NavigationSuggestionWorkspaceAvatar;
+    workspaceName?: string;
 };
 
 type SearchQueryListItemProps = {
@@ -43,6 +52,10 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, shouldDisableHoverStyle}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const shouldShowWorkspaceContext = item.navigationContextType === CONST.SEARCH.SEARCH_ROUTER_NAVIGATION_CONTEXT.WORKSPACE && !!item.workspaceName;
+    const shouldShowParentTabContext =
+        (item.navigationContextType === CONST.SEARCH.SEARCH_ROUTER_NAVIGATION_CONTEXT.SPEND || item.navigationContextType === CONST.SEARCH.SEARCH_ROUTER_NAVIGATION_CONTEXT.ACCOUNT) &&
+        !!item.parentTabTitle;
 
     return (
         <BaseListItem
@@ -89,6 +102,42 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                         />
                     )}
                 </View>
+                {shouldShowWorkspaceContext && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, styles.pl2, styles.gap2]}>
+                        {!!item.workspaceAvatar && (
+                            <Avatar
+                                source={item.workspaceAvatar.source}
+                                name={item.workspaceAvatar.name}
+                                type={item.workspaceAvatar.type}
+                                avatarID={item.workspaceAvatar.id}
+                                size={CONST.AVATAR_SIZE.SMALL}
+                            />
+                        )}
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting, styles.lh16]}
+                        >
+                            {item.workspaceName}
+                        </Text>
+                    </View>
+                )}
+                {shouldShowParentTabContext && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, styles.pl2, styles.gap2]}>
+                        {!!item.parentTabIcon && (
+                            <Icon
+                                src={item.parentTabIcon}
+                                fill={theme.icon}
+                                small
+                            />
+                        )}
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textLabelSupporting, styles.lh16]}
+                        >
+                            {item.parentTabTitle}
+                        </Text>
+                    </View>
+                )}
             </>
         </BaseListItem>
     );
