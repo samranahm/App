@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import PrevNextButtons from '@components/PrevNextButtons';
@@ -145,34 +145,42 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             name: 'ReportNavigation',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
-        Navigation.setParams({
-            reportID: reportId,
-            reportActionID: undefined,
-            referrer: undefined,
-        });
+        startTransition(() =>
+            Navigation.setParams({
+                reportID: reportId,
+                reportActionID: undefined,
+                referrer: undefined,
+            }),
+        );
     };
 
     const goToNextReport = () => {
-        if (currentIndex === -1 || effectiveAllReports.length === 0 || !lastSearchQuery?.queryJSON) {
+        const queryJSON = lastSearchQuery?.queryJSON;
+        if (currentIndex === -1 || effectiveAllReports.length === 0 || !queryJSON) {
             return;
-        }
-        const threshold = Math.min(effectiveAllReports.length * 0.75, effectiveAllReports.length - 2);
-
-        if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
-            const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
-            search({
-                queryJSON: lastSearchQuery.queryJSON,
-                offset: newOffset,
-                prevReportsLength: effectiveAllReports.length,
-                shouldCalculateTotals: false,
-                searchKey: lastSearchQuery.searchKey,
-                isLoading: isSearchLoading,
-                shouldUpdateLastSearchParams: true,
-            });
         }
 
         const nextIndex = (currentIndex + 1) % effectiveAllReports.length;
         goToReportId(effectiveAllReports.at(nextIndex));
+
+        const threshold = Math.min(effectiveAllReports.length * 0.75, effectiveAllReports.length - 2);
+        if (currentIndex + 1 >= threshold && lastSearchQuery?.hasMoreResults) {
+            const newOffset = (lastSearchQuery.offset ?? 0) + CONST.SEARCH.RESULTS_PAGE_SIZE;
+            requestIdleCallback(
+                () => {
+                    search({
+                        queryJSON,
+                        offset: newOffset,
+                        prevReportsLength: effectiveAllReports.length,
+                        shouldCalculateTotals: false,
+                        searchKey: lastSearchQuery.searchKey,
+                        isLoading: isSearchLoading,
+                        shouldUpdateLastSearchParams: true,
+                    });
+                },
+                {timeout: 500},
+            );
+        }
     };
 
     const goToPrevReport = () => {
@@ -196,6 +204,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
                 isNextButtonDisabled={hideNextButton}
                 onNext={goToNextReport}
                 onPrevious={goToPrevReport}
+                prevButtonSentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.PREV_BUTTON_SEARCH_REPORT}
+                nextButtonSentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.NEXT_BUTTON_SEARCH_REPORT}
             />
         </View>
     );

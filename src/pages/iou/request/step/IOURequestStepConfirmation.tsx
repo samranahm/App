@@ -1,5 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {startTransition, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -691,14 +691,14 @@ function IOURequestStepConfirmation({
     const showNextTransaction = () => {
         const nextTransaction = transactions.at(currentTransactionIndex + 1);
         if (nextTransaction) {
-            setCurrentTransactionID(nextTransaction.transactionID);
+            startTransition(() => setCurrentTransactionID(nextTransaction.transactionID));
         }
     };
 
     const showPreviousTransaction = () => {
         const previousTransaction = transactions.at(currentTransactionIndex - 1);
         if (previousTransaction) {
-            setCurrentTransactionID(previousTransaction.transactionID);
+            startTransition(() => setCurrentTransactionID(previousTransaction.transactionID));
         }
     };
 
@@ -809,6 +809,8 @@ function IOURequestStepConfirmation({
                                     isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
                                     onNext={showNextTransaction}
                                     onPrevious={showPreviousTransaction}
+                                    prevButtonSentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.PREV_BUTTON_IOU_CONFIRMATION}
+                                    nextButtonSentryLabel={CONST.SENTRY_LABEL.PREV_NEXT_BUTTONS.NEXT_BUTTON_IOU_CONFIRMATION}
                                 />
                             ) : null}
                         </HeaderWithBackButton>

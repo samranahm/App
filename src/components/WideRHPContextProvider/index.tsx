@@ -227,6 +227,9 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return;
         }
         setExpenseReportIDs((prev) => {
+            if (prev.has(reportID)) {
+                return prev;
+            }
             const newSet = new Set(prev);
             newSet.add(reportID);
             return newSet;
