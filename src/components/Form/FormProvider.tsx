@@ -30,7 +30,7 @@ import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
 import FormWrapper from './FormWrapper';
 import isNumericKeyboard from './isNumericKeyboard';
-import type {FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
+import type {BlurValidationValues, FormInputErrors, FormOnyxValues, FormProps, FormRef, FormWrapperRef, InputComponentBaseProps, InputRefs, ValueTypeKey} from './types';
 
 // In order to prevent Checkbox focus loss when the user are focusing a TextInput and proceeds to toggle a CheckBox in web and mobile web.
 // 200ms delay was chosen as a result of empirical testing.
@@ -444,9 +444,10 @@ function FormProvider({
                     }
                     inputProps.onPressOut?.(event);
                 },
-                onBlur: (event) => {
-                    // Only run validation when user proactively blurs the input.
-                    if (Visibility.isVisible() && Visibility.hasFocus()) {
+                onBlur: (event, validationValues?: BlurValidationValues) => {
+                    const hasValidationOverride = validationValues !== undefined;
+                    // Only run validation when user proactively blurs the input, or when a component passes explicit validation values (e.g. address selection).
+                    if (hasValidationOverride || (Visibility.isVisible() && Visibility.hasFocus())) {
                         const relatedTarget = event && 'relatedTarget' in event.nativeEvent && event?.nativeEvent?.relatedTarget;
                         const relatedTargetId = relatedTarget && 'id' in relatedTarget && typeof relatedTarget.id === 'string' && relatedTarget.id;
                         // We delay the validation in order to prevent Checkbox loss of focus when
@@ -455,16 +456,18 @@ function FormProvider({
 
                         setTimeout(() => {
                             if (
-                                relatedTargetId === CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID ||
-                                relatedTargetId === CONST.OVERLAY.TOP_BUTTON_NATIVE_ID ||
-                                relatedTargetId === CONST.BACK_BUTTON_NATIVE_ID
+                                !hasValidationOverride &&
+                                (relatedTargetId === CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID ||
+                                    relatedTargetId === CONST.OVERLAY.TOP_BUTTON_NATIVE_ID ||
+                                    relatedTargetId === CONST.BACK_BUTTON_NATIVE_ID)
                             ) {
                                 return;
                             }
                             setTouchedInput(inputID);
                             // Skip validation if the screen is not focused or keyboard focus is being restored (Android mWeb)
                             if (shouldValidateOnBlur && isFocusedRef.current && !getIsRestoringKeyboardFocus()) {
-                                onValidate(inputValues, !hasServerError);
+                                const valuesToValidate = hasValidationOverride ? ({...inputValues, ...validationValues} as Form) : inputValues;
+                                onValidate(valuesToValidate, !hasServerError);
                             }
                         }, VALIDATE_DELAY);
                     }

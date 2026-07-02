@@ -1,5 +1,5 @@
 import type {ComponentRef, ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, HostComponent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
+import type {BlurEvent, GestureResponderEvent, HostComponent, InputModeOptions, KeyboardTypeOptions, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -89,6 +89,8 @@ type ValueTypeMap = {
 };
 type FormValue = ValueOf<ValueTypeMap>;
 
+type BlurValidationValues = Partial<Record<string, FormValue>>;
+
 type InputComponentValueProps<TValue extends ValueTypeKey = ValueTypeKey> = {
     valueType?: TValue;
     value?: ValueTypeMap[TValue];
@@ -111,7 +113,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     minDate?: Date;
     maxDate?: Date;
     onTouched?: (event: GestureResponderEvent) => void;
-    onBlur?: (event: FocusEvent) => void;
+    onBlur?: (event?: FocusEvent | BlurEvent, validationValues?: BlurValidationValues) => void;
     onPressOut?: (event: GestureResponderEvent) => void;
     onPress?: (event: GestureResponderEvent) => void;
     onInputChange?: (value: FormValue, key: string) => void;
@@ -205,6 +207,7 @@ export type {
     FormProps,
     ValidInputs,
     InputComponentValueProps,
+    BlurValidationValues,
     FormValue,
     ValueTypeKey,
     FormOnyxValues,

@@ -4,6 +4,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
 import ActivityIndicator from '@components/ActivityIndicator';
+import type {BlurValidationValues} from '@components/Form/types';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -42,6 +43,20 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
     }
     const fullSearchSentence = `${place.name ?? ''} ${place.description}`;
     return search.split(' ').every((searchTerm) => !searchTerm || fullSearchSentence.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()));
+}
+
+function getValidationValuesFromAddressData(values: Record<string, string | number>, renamedInputKeys?: Record<string, string>): BlurValidationValues {
+    const validationValues: BlurValidationValues = {};
+
+    for (const [key, inputValue] of Object.entries(values)) {
+        const inputKey = renamedInputKeys?.[key] ?? key;
+        if (!inputKey) {
+            continue;
+        }
+        validationValues[inputKey] = inputValue as BlurValidationValues[string];
+    }
+
+    return validationValues;
 }
 
 // The error that's being thrown below will be ignored until we fork the
@@ -137,6 +152,7 @@ function AddressSearch({
     const [isLoadingResults, setIsLoadingResults] = useState(false);
     const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
+    const isAwaitingPlaceDetailsRef = useRef(false);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
     const containerRef = useRef<View>(null);
 
@@ -145,6 +161,12 @@ function AddressSearch({
         displayListViewBorder && isTyping && !isLoadingResults && !isListEmpty,
         searchValue,
     );
+
+    useEffect(() => {
+        if (isLoadingResults) {
+            isAwaitingPlaceDetailsRef.current = true;
+        }
+    }, [isLoadingResults]);
 
     const query = useMemo(
         () => ({
@@ -286,6 +308,7 @@ function AddressSearch({
                 }
                 onInputChange?.(inputValue, inputKey);
             }
+            onBlur?.(undefined, getValidationValuesFromAddressData(values, renamedInputKeys));
         } else {
             onInputChange?.(values);
         }
@@ -432,6 +455,7 @@ function AddressSearch({
                         }}
                         onPress={(data, details) => {
                             saveLocationDetails(data, details);
+                            isAwaitingPlaceDetailsRef.current = false;
                             setIsTyping(false);
 
                             // After we select an option, we set displayListViewBorder to false to prevent UI flickering
@@ -462,12 +486,15 @@ function AddressSearch({
                                 onFocus?.();
                             },
                             onBlur: (event) => {
+                                const isSelectingAddressFromSuggestions = isCurrentTargetInsideContainer(event, containerRef) || isLoadingResults || isAwaitingPlaceDetailsRef.current;
                                 if (!isCurrentTargetInsideContainer(event, containerRef)) {
                                     setDisplayListViewBorder(false);
                                     setIsFocused(false);
                                     setIsTyping(false);
                                 }
-                                onBlur?.();
+                                if (!isSelectingAddressFromSuggestions) {
+                                    onBlur?.(event);
+                                }
                             },
                             autoComplete,
                             autoFocus,
