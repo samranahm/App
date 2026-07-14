@@ -26,7 +26,7 @@ import type {EventArg, EventMapCore, NavigationProp, NavigationState, ParamListB
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {TabActions, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type {RegisterTabSwitchGuard, TabSwitchGuard} from './TabSwitchGuardContext';
 
@@ -183,6 +183,8 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
         }
         event.preventDefault();
         isDiscardModalOpenRef.current = true;
+        // Dismiss keyboard early so the shared KeyboardAvoidingView can reclaim full height while the discard modal is open.
+        Keyboard.dismiss();
         showConfirmModal({
             ...getDiscardChangesModalConfig(translate),
             shouldIgnoreBackHandlerDuringTransition: true,
