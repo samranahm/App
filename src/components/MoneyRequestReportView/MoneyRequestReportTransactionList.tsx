@@ -239,6 +239,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Reason attributes forwarded to the loading skeleton span. */
     skeletonReasonAttributes: SkeletonSpanReasonAttributes;
+
+    /** Rendered at the very bottom of the list, below all report actions (e.g. the Concierge thinking tail indicator). */
+    listFooterComponent?: React.ReactElement;
 };
 
 type SortedTransactions = {
@@ -273,6 +276,7 @@ function MoneyRequestReportTransactionList({
     contentContainerStyle,
     isLoadingInitialActions,
     skeletonReasonAttributes,
+    listFooterComponent,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -1113,6 +1117,7 @@ function MoneyRequestReportTransactionList({
                 isOffline={isOffline}
                 isLoadingInitialActions={isLoadingInitialActions}
                 skeletonReasonAttributes={skeletonReasonAttributes}
+                listFooterComponent={listFooterComponent}
             />
             <MoneyRequestReportTransactionLongPressModal
                 ref={longPressModalRef}

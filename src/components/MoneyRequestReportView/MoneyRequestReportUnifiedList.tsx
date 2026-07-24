@@ -130,6 +130,9 @@ type MoneyRequestReportUnifiedListProps = {
     /** Reports the index of the last list item so callers can jump to the bottom via scrollToIndex (which renders the
      * landing region, unlike scrollToEnd's estimated-offset jump that leaves the bottom blank on large lists). */
     onLastItemIndexChange?: (index: number) => void;
+
+    /** Rendered at the very bottom of the list, below all report actions (e.g. the Concierge thinking tail indicator). */
+    listFooterComponent?: React.ReactElement;
 };
 
 function MoneyRequestReportUnifiedList({
@@ -154,6 +157,7 @@ function MoneyRequestReportUnifiedList({
     isLoadingInitialActions,
     skeletonReasonAttributes,
     onLastItemIndexChange,
+    listFooterComponent,
 }: MoneyRequestReportUnifiedListProps) {
     // When the table is wider than the viewport it can't share the horizontally-scrolled container with the chat (chat
     // would drift sideways / jump on web). Instead the FlashList keeps ONLY the report actions virtualized, and the table is
@@ -386,7 +390,12 @@ function MoneyRequestReportUnifiedList({
             onContentSizeChange={onContentSizeChange}
             contentContainerStyle={contentContainerStyle}
             ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
-            ListFooterComponent={shouldInlineTransactions && shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} /> : undefined}
+            ListFooterComponent={
+                <>
+                    {shouldInlineTransactions && shouldShowActionsLoadingSkeleton && <ReportActionsListLoadingSkeleton reasonAttributes={skeletonReasonAttributes} />}
+                    {listFooterComponent}
+                </>
+            }
             drawDistance={1000}
         />
     );
