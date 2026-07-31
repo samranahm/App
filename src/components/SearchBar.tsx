@@ -26,10 +26,11 @@ type SearchBarProps = {
     style?: StyleProp<ViewStyle>;
     shouldShowEmptyState?: boolean;
     emptyStateContainerStyle?: StyleProp<ViewStyle>;
+    shouldShowIcon?: boolean;
     ref?: React.Ref<BaseTextInputRef>;
 };
 
-function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
+function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle, shouldShowIcon = true}: SearchBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -52,7 +53,7 @@ function SearchBar({ref, label, style, icon, inputValue, onChangeText, onSubmitE
                     inputMode={CONST.INPUT_MODE.TEXT}
                     selectTextOnFocus
                     spellCheck={false}
-                    icon={inputValue?.length ? undefined : (icon ?? expensifyIcons.MagnifyingGlass)}
+                    icon={inputValue?.length || !shouldShowIcon ? undefined : (icon ?? expensifyIcons.MagnifyingGlass)}
                     iconContainerStyle={styles.p0}
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton

@@ -10,6 +10,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -21,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,6 +32,7 @@ import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {useIsAgentAccount} from '@libs/SessionUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import type {AnchorPosition} from '@styles/index';
@@ -48,7 +51,7 @@ import type {RefObject} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {Dimensions, View} from 'react-native';
 
 const accountDelegationSelector = (accountValue: Account | undefined) => ({
@@ -117,9 +120,6 @@ function CopilotPage() {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
-
-    const hasDelegators = delegators.length > 0;
-    const hasDelegates = delegates.length > 0;
 
     const setMenuPosition = useCallback(() => {
         if (!delegateButtonRef.current) {
@@ -200,79 +200,81 @@ function CopilotPage() {
         [styles, translate],
     );
 
-    const delegateMenuItems: MenuItemProps[] = useMemo(() => {
-        const sortedDelegates = sortAlphabetically(
-            delegates.filter((d) => !d.optimisticAccountID).map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
-            'sortKey',
-            localeCompare,
-        );
-        return sortedDelegates.map(({email, role, pendingAction, pendingFields}) => {
-            const personalDetail = personalDetailsByLogin[email.toLowerCase()];
-            const addDelegateErrors = errorFields?.addDelegate?.[email];
-            const error = getLatestError(addDelegateErrors);
-            const isOwnerRow = isAgentAccount && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
-
-            const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
-                if (isEmptyObject(pendingAction)) {
-                    showPopoverMenu(e, {email, role});
-                    return;
-                }
-                if (!role) {
-                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
-                    return;
-                }
-                if (pendingFields?.role && !pendingFields?.email) {
-                    Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
-            };
-
-            const formattedEmail = formatPhoneNumber(email);
-            const titleText = personalDetail?.displayName ?? formattedEmail;
-            const descriptionText = personalDetail?.displayName ? formattedEmail : '';
-            return {
-                key: email,
-                titleComponent: renderTitleWithRole(titleText, descriptionText, role),
-                avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
-                iconType: CONST.ICON_TYPE_AVATAR,
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-                iconRight: isOwnerRow ? undefined : icons.ThreeDots,
-                shouldShowRightIcon: !isOwnerRow,
-                pendingAction,
-                shouldForceOpacity: !!pendingAction,
-                onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
-                error,
-                onPress: isOwnerRow ? undefined : onPress,
-                interactive: !isOwnerRow,
-                success: selectedEmail === email,
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_ITEM,
-            };
-        });
-    }, [
-        delegates,
-        errorFields,
-        account?.delegatedAccess,
-        formatPhoneNumber,
-        personalDetailsByLogin,
-        styles,
-        selectedEmail,
-        icons.ThreeDots,
-        localeCompare,
-        showPopoverMenu,
-        renderTitleWithRole,
-        isAgentAccount,
-        actingDelegateEmail,
-    ]);
-
     const sortedDelegators = sortAlphabetically(
-        delegators.map((d) => ({...d, sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email)})),
+        delegators.map((d) => ({
+            ...d,
+            sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email),
+            listType: 'delegator' as const,
+        })),
         'sortKey',
         localeCompare,
     );
-    const delegatorMenuItems: MenuItemProps[] = sortedDelegators.map(({email, role, pendingAction}) => {
+    const sortedDelegates = sortAlphabetically(
+        delegates
+            .filter((d) => !d.optimisticAccountID)
+            .map((d) => ({
+                ...d,
+                sortKey: personalDetailsByLogin[d.email.toLowerCase()]?.displayName ?? formatPhoneNumber(d.email),
+                listType: 'delegate' as const,
+            })),
+        'sortKey',
+        localeCompare,
+    );
+    const searchableCopilots = [...sortedDelegators, ...sortedDelegates];
+    const shouldShowSearchInput = searchableCopilots.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const filterCopilot = (item: (typeof searchableCopilots)[number], searchInputValue: string) =>
+        tokenizedSearch([item], searchInputValue, (copilot) => [copilot.sortKey, formatPhoneNumber(copilot.email)]).length > 0;
+    const [searchInput, setSearchInput, filteredCopilots] = useSearchResults(searchableCopilots, filterCopilot);
+    const visibleDelegators = shouldShowSearchInput ? filteredCopilots.filter((item) => item.listType === 'delegator') : sortedDelegators;
+    const visibleDelegates = shouldShowSearchInput ? filteredCopilots.filter((item) => item.listType === 'delegate') : sortedDelegates;
+
+    const delegateMenuItems: MenuItemProps[] = visibleDelegates.map(({email, role, pendingAction, pendingFields}) => {
+        const personalDetail = personalDetailsByLogin[email.toLowerCase()];
+        const addDelegateErrors = errorFields?.addDelegate?.[email];
+        const error = getLatestError(addDelegateErrors);
+        const isOwnerRow = isAgentAccount && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
+
+        const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
+            if (isEmptyObject(pendingAction)) {
+                showPopoverMenu(e, {email, role});
+                return;
+            }
+            if (!role) {
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
+                return;
+            }
+            if (pendingFields?.role && !pendingFields?.email) {
+                Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role));
+        };
+
+        const formattedEmail = formatPhoneNumber(email);
+        const titleText = personalDetail?.displayName ?? formattedEmail;
+        const descriptionText = personalDetail?.displayName ? formattedEmail : '';
+        return {
+            key: email,
+            titleComponent: renderTitleWithRole(titleText, descriptionText, role),
+            avatarID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            icon: personalDetail?.avatar ?? (personalDetail ? getDefaultAvatarURL({accountID: personalDetail.accountID, accountEmail: email}) : undefined),
+            iconType: CONST.ICON_TYPE_AVATAR,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            iconRight: isOwnerRow ? undefined : icons.ThreeDots,
+            shouldShowRightIcon: !isOwnerRow,
+            pendingAction,
+            shouldForceOpacity: !!pendingAction,
+            onPendingActionDismiss: () => clearDelegateErrorsByField({email, fieldName: 'addDelegate', delegatedAccess: account?.delegatedAccess}),
+            error,
+            onPress: isOwnerRow ? undefined : onPress,
+            interactive: !isOwnerRow,
+            success: selectedEmail === email,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_ITEM,
+        };
+    });
+
+    const delegatorMenuItems: MenuItemProps[] = visibleDelegators.map(({email, role, pendingAction}) => {
         const personalDetail = personalDetailsByLogin[email.toLowerCase()];
         const formattedEmail = formatPhoneNumber(email);
         const connectError = getLatestError(errorFields?.connect?.[email]);
@@ -443,15 +445,28 @@ function CopilotPage() {
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
                             >
-                                {hasDelegators && (
+                                {shouldShowSearchInput && (
+                                    <SearchBar
+                                        label={translate('workspace.people.findMember')}
+                                        inputValue={searchInput}
+                                        onChangeText={setSearchInput}
+                                        shouldShowEmptyState={visibleDelegators.length === 0 && visibleDelegates.length === 0}
+                                        shouldShowIcon={false}
+                                        style={[styles.mh0, styles.mb0]}
+                                        emptyStateContainerStyle={styles.ph0}
+                                    />
+                                )}
+                                {visibleDelegators.length > 0 && (
                                     <>
-                                        <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.pv1, shouldShowSearchInput && styles.mt5]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
                                         <MenuItemList menuItems={delegatorMenuItems} />
                                     </>
                                 )}
-                                {hasDelegates && (
+                                {visibleDelegates.length > 0 && (
                                     <>
-                                        <Text style={[styles.textLabelSupporting, styles.pv1, hasDelegators && styles.mt5]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
+                                        <Text style={[styles.textLabelSupporting, styles.pv1, (visibleDelegators.length > 0 || shouldShowSearchInput) && styles.mt5]}>
+                                            {translate('delegate.membersCanAccessYourAccount')}
+                                        </Text>
                                         <MenuItemList menuItems={delegateMenuItems} />
                                     </>
                                 )}

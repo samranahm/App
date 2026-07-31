@@ -6,6 +6,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -15,6 +16,7 @@ import {getLatestError} from '@libs/ErrorUtils';
 import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 
@@ -39,6 +41,7 @@ import Button from './Button';
 import {ModalActions} from './Modal/Global/ModalContext';
 import PopoverMenu from './PopoverMenu';
 import {useProductTrainingContext} from './ProductTrainingContext';
+import SearchBar from './SearchBar';
 import Text from './Text';
 import Tooltip from './Tooltip';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
@@ -195,9 +198,42 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         };
     };
 
-    const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const delegatorMenuItems: PopoverMenuItem[] = isActingAsDelegate
+        ? []
+        : sortAlphabetically(
+              delegators
+                  .filter(({email}) => email !== currentUserPersonalDetails.login)
+                  .map(({email, role}) => {
+                      const errorFields = account?.delegatedAccess?.errorFields ?? {};
+                      const error = getLatestError(errorFields?.connect?.[email]);
+                      const personalDetails = getPersonalDetailByEmail(email);
+                      return createBaseMenuItem(personalDetails, error, {
+                          key: email,
+                          badgeText: translate('delegate.role', {role}),
+                          onSelected: () => {
+                              if (isOffline) {
+                                  close(showOfflineModal);
+                                  return;
+                              }
+                              if (isTrackingGPS) {
+                                  close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
+                                  return;
+                              }
+                              connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
+                          },
+                      });
+                  }),
+              'text',
+              localeCompare,
+          );
 
+    const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
+    const searchableMenuItems = [currentUserMenuItem, ...delegatorMenuItems];
+    const shouldShowSearchInput = !isActingAsDelegate && delegatorMenuItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const filterDelegator = (item: PopoverMenuItem, searchInputValue: string) => tokenizedSearch([item], searchInputValue, (option) => [option.text, option.description ?? '']).length > 0;
+    const [searchInput, setSearchInput, filteredMenuItems] = useSearchResults(searchableMenuItems, filterDelegator);
+
+    const menuItems = (): PopoverMenuItem[] => {
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
 
@@ -229,37 +265,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             ];
         }
 
-        const delegatorMenuItems: PopoverMenuItem[] = sortAlphabetically(
-            delegators
-                .filter(({email}) => email !== currentUserPersonalDetails.login)
-                .map(({email, role}) => {
-                    const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                    const error = getLatestError(errorFields?.connect?.[email]);
-                    const personalDetails = getPersonalDetailByEmail(email);
-                    return createBaseMenuItem(personalDetails, error, {
-                        badgeText: translate('delegate.role', {role}),
-                        onSelected: () => {
-                            if (isOffline) {
-                                close(showOfflineModal);
-                                return;
-                            }
-                            if (isTrackingGPS) {
-                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
-                                return;
-                            }
-                            connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
-                        },
-                    });
-                }),
-            'text',
-            localeCompare,
-        );
-
-        return [currentUserMenuItem, ...delegatorMenuItems];
+        return shouldShowSearchInput ? filteredMenuItems : searchableMenuItems;
     };
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
+        setSearchInput('');
         clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
@@ -337,6 +348,19 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     }}
                     menuItems={menuItems()}
                     headerText={translate('delegate.switchAccount')}
+                    aboveListContent={
+                        shouldShowSearchInput ? (
+                            <SearchBar
+                                label={translate('workspace.people.findMember')}
+                                inputValue={searchInput}
+                                onChangeText={setSearchInput}
+                                shouldShowEmptyState={filteredMenuItems.length === 0 && searchInput.length > 0}
+                                shouldShowIcon={false}
+                                style={[styles.mh5, styles.mt2, styles.mb3]}
+                                emptyStateContainerStyle={styles.pb2}
+                            />
+                        ) : undefined
+                    }
                     containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}

@@ -205,7 +205,12 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
      * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
      */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    /** Optional pinned content below the header. */
+    aboveListContent?: ReactNode;
 };
+
+const INPUT_EXCLUDED_NODES = [CONST.ELEMENT_NAME.INPUT];
 
 type PopoverMenuContentProps = {
     shouldUseScrollView: boolean;
@@ -341,6 +346,7 @@ function BasePopoverMenu({
     shouldMaintainFocusAfterSubItemSelect: shouldPreserveFocusOnSubItems = true,
     enableEdgeToEdgeBottomSafeAreaPadding,
     testID,
+    aboveListContent,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -363,6 +369,8 @@ function BasePopoverMenu({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
     const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
+    const pinnedAboveListContent = aboveListContent && enteredSubMenuIndexes.length === 0 ? aboveListContent : null;
+    const shouldPinChromeOutsideScroll = shouldUseScrollView && !!pinnedAboveListContent;
 
     const getPreviousSubMenu = () => {
         let currentItems = menuItems;
@@ -554,8 +562,21 @@ function BasePopoverMenu({
             selectItem(focusedIndex);
             setFocusedIndex(-1); // Reset the focusedIndex on selecting any menu
         },
-        {isActive: isVisible},
+        {
+            isActive: isVisible,
+            // When a search field (or other input) is mounted above the list, let Enter stay in the input
+            // instead of selecting the focused row.
+            excludedNodes: pinnedAboveListContent ? INPUT_EXCLUDED_NODES : undefined,
+        },
     );
+
+    // Filtering can shrink the visible list; keep the focused index in bounds.
+    useEffect(() => {
+        if (focusedIndex < currentMenuItems.length) {
+            return;
+        }
+        setFocusedIndex(Math.max(getSelectedItemIndex(currentMenuItems), 0));
+    }, [currentMenuItems, focusedIndex, setFocusedIndex]);
 
     const keyboardShortcutSpaceCallback = useCallback(
         (e?: GestureResponderEvent | KeyboardEvent) => {
@@ -716,15 +737,41 @@ function BasePopoverMenu({
                         onLayout={onLayout}
                         style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
                     >
-                        <PopoverMenuContent
-                            shouldUseScrollView={shouldUseScrollView}
-                            contentContainerStyle={[scrollViewPaddingStyles, restScrollContainerStyle]}
-                            addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
-                        >
-                            {renderHeaderText()}
-                            {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
-                            {renderedMenuItems}
-                        </PopoverMenuContent>
+                        {shouldPinChromeOutsideScroll ? (
+                            <>
+                                <View
+                                    style={{
+                                        paddingTop: scrollViewPaddingStyles.paddingTop ?? scrollViewPaddingStyles.paddingVertical,
+                                    }}
+                                >
+                                    {renderHeaderText()}
+                                    {pinnedAboveListContent}
+                                </View>
+                                <PopoverMenuContent
+                                    shouldUseScrollView
+                                    contentContainerStyle={[
+                                        {
+                                            paddingBottom: scrollViewPaddingStyles.paddingBottom ?? scrollViewPaddingStyles.paddingVertical,
+                                        },
+                                        restScrollContainerStyle,
+                                    ]}
+                                    addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                                >
+                                    {renderedMenuItems}
+                                </PopoverMenuContent>
+                            </>
+                        ) : (
+                            <PopoverMenuContent
+                                shouldUseScrollView={shouldUseScrollView}
+                                contentContainerStyle={[scrollViewPaddingStyles, restScrollContainerStyle]}
+                                addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                            >
+                                {renderHeaderText()}
+                                {pinnedAboveListContent}
+                                {enteredSubMenuIndexes.length > 0 && renderBackButtonItem()}
+                                {renderedMenuItems}
+                            </PopoverMenuContent>
+                        )}
                     </View>
                 </CompactMenuContext.Provider>
             </FocusTrapForModal>
@@ -750,7 +797,8 @@ export default React.memo(
         prevProps.animationInTiming === nextProps.animationInTiming &&
         prevProps.disableAnimation === nextProps.disableAnimation &&
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
-        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
+        prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility &&
+        prevProps.aboveListContent === nextProps.aboveListContent,
 );
 export type {PopoverMenuItem, PopoverMenuProps};
 export {getItemKey, buildKeyPathFromIndexPath, resolveIndexPathByKeyPath};
