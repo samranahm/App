@@ -221,69 +221,67 @@ function AttachmentPicker({
                         return resolve();
                     }
 
-                    const processedAssets: Asset[] = [];
-                    let processedCount = 0;
+                    // Sequential so multi-select HEIC decode cannot fan out and OOM.
+                    (async () => {
+                        const processedAssets: Asset[] = [];
 
-                    const checkAllProcessed = () => {
-                        processedCount++;
-                        if (processedCount === assets.length) {
-                            resolve(processedAssets.length > 0 ? processedAssets : undefined);
-                        }
-                    };
+                        for (const asset of assets) {
+                            if (!asset.uri) {
+                                continue;
+                            }
 
-                    for (const asset of assets) {
-                        if (!asset.uri) {
-                            checkAllProcessed();
-                            continue;
-                        }
+                            if (!asset.type?.startsWith('image')) {
+                                processedAssets.push(processAssetWithFallbacks(asset));
+                                continue;
+                            }
 
-                        if (asset.type?.startsWith('image')) {
-                            verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES})
-                                .then((isHEIC) => {
-                                    // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                    if (isHEIC && asset.uri) {
-                                        ImageManipulator.manipulate(asset.uri)
-                                            .renderAsync()
-                                            .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                            .then((manipulationResult) => {
-                                                const uri = manipulationResult.uri;
-                                                const convertedAsset = {
-                                                    uri,
-                                                    name: uri
-                                                        .substring(uri.lastIndexOf('/') + 1)
-                                                        .split('?')
-                                                        .at(0),
-                                                    type: 'image/jpeg',
-                                                    width: manipulationResult.width,
-                                                    height: manipulationResult.height,
-                                                };
-                                                processedAssets.push(convertedAsset);
-                                                checkAllProcessed();
-                                            })
-                                            .catch((error: Error) => {
-                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
-                                                const fallbackAsset = processAssetWithFallbacks(asset);
-                                                processedAssets.push(fallbackAsset);
-                                                checkAllProcessed();
-                                            });
-                                    } else {
-                                        // Ensure the asset has proper fileName and type for non-HEIC images
-                                        const processedAsset = processAssetWithFallbacks(asset);
-                                        processedAssets.push(processedAsset);
-                                        checkAllProcessed();
+                            try {
+                                // eslint-disable-next-line no-await-in-loop
+                                const isHEIC = await verifyFileFormat({fileUri: asset.uri, formatSignatures: CONST.HEIC_SIGNATURES});
+                                // Image picker may change the extension without transcoding HEIC.
+                                if (!isHEIC || !asset.uri) {
+                                    processedAssets.push(processAssetWithFallbacks(asset));
+                                    continue;
+                                }
+
+                                const imageManipulatorContext = ImageManipulator.manipulate(asset.uri);
+                                try {
+                                    // eslint-disable-next-line no-await-in-loop
+                                    const manipulatedImage = await imageManipulatorContext.renderAsync();
+                                    try {
+                                        // eslint-disable-next-line no-await-in-loop
+                                        const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
+                                        const uri = manipulationResult.uri;
+                                        processedAssets.push({
+                                            uri,
+                                            fileName: uri
+                                                .substring(uri.lastIndexOf('/') + 1)
+                                                .split('?')
+                                                .at(0),
+                                            type: 'image/jpeg',
+                                            width: manipulationResult.width,
+                                            height: manipulationResult.height,
+                                        });
+                                    } finally {
+                                        manipulatedImage.release();
                                     }
-                                })
-                                .catch((error: Error) => {
-                                    showGeneralAlert(error.message ?? 'An unknown error occurred');
-                                    checkAllProcessed();
-                                });
-                        } else {
-                            // Ensure the asset has proper fileName and type
-                            const processedAsset = processAssetWithFallbacks(asset);
-                            processedAssets.push(processedAsset);
-                            checkAllProcessed();
+                                } catch (error) {
+                                    Log.warn('Failed to convert HEIC image, falling back to original', {
+                                        error: error instanceof Error ? error.message : String(error),
+                                    });
+                                    processedAssets.push(processAssetWithFallbacks(asset));
+                                } finally {
+                                    imageManipulatorContext.release();
+                                }
+                            } catch (error) {
+                                showGeneralAlert(error instanceof Error ? (error.message ?? 'An unknown error occurred') : 'An unknown error occurred');
+                            }
                         }
-                    }
+
+                        resolve(processedAssets.length > 0 ? processedAssets : undefined);
+                    })().catch((error: Error) => {
+                        reject(error);
+                    });
                 });
             }),
         [fileLimit, showGeneralAlert, translate, type],

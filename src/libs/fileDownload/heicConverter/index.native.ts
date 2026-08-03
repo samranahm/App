@@ -1,10 +1,12 @@
 import {verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import fileURIToPath from '@libs/fileURIToPath';
 import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+import RNFetchBlob from 'react-native-blob-util';
 
 import type {HeicConverterFunction} from './types';
 
@@ -32,23 +34,40 @@ const convertImageWithManipulator = (
     const imageManipulatorContext = ImageManipulator.manipulate(sourceUri);
     imageManipulatorContext
         .renderAsync()
-        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-        .then((manipulationResult) => {
-            const convertedFile = {
-                uri: manipulationResult.uri,
-                name: file.name?.replace(originalExtension, '.jpg') ?? 'converted-image.jpg',
-                type: 'image/jpeg',
-                size: file.size,
-                width: manipulationResult.width,
-                height: manipulationResult.height,
-            };
-            onSuccess(convertedFile);
+        .then(async (manipulatedImage) => {
+            try {
+                const manipulationResult = await manipulatedImage.saveAsync({format: SaveFormat.JPEG});
+
+                // ImageResult has no size; read the written JPEG so resize checks use real bytes.
+                let size = file.size;
+                try {
+                    const jpegStat = await RNFetchBlob.fs.stat(fileURIToPath(manipulationResult.uri));
+                    size = jpegStat.size;
+                } catch (statError) {
+                    Log.warn('Unable to read converted JPEG size, falling back to original file size', {
+                        error: statError instanceof Error ? statError.message : String(statError),
+                    });
+                }
+
+                const convertedFile = {
+                    uri: manipulationResult.uri,
+                    name: file.name?.replace(originalExtension, '.jpg') ?? 'converted-image.jpg',
+                    type: 'image/jpeg',
+                    size,
+                    width: manipulationResult.width,
+                    height: manipulationResult.height,
+                };
+                onSuccess(convertedFile);
+            } finally {
+                manipulatedImage.release();
+            }
         })
         .catch((err) => {
             Log.warn('Error converting HEIC/HEIF to JPEG', {error: err instanceof Error ? err.message : String(err)});
             onError(err, file);
         })
         .finally(() => {
+            imageManipulatorContext.release();
             onFinish();
         });
 };
