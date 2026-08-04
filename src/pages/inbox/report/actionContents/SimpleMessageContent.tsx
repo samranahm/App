@@ -8,7 +8,9 @@ import {
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
+    getRejectedReportActionMessage,
     getReportActionText,
+    getRetractedReportActionMessage,
     isActionOfType,
     isRejectedAction,
     isUnapprovedAction,
@@ -72,7 +74,7 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('iou.reject.reportActions.markedAsResolved')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
-        return <ReportActionItemBasicMessage message={translate('iou.retracted')} />;
+        return <ReportActionItemBasicMessage message={getRetractedReportActionMessage(action, translate)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         return <ReportActionItemBasicMessage message={translate('iou.reopened')} />;
@@ -96,7 +98,7 @@ function SimpleMessageContent({action}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
     }
     if (isRejectedAction(action)) {
-        return <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
+        return <ReportActionItemBasicMessage message={getRejectedReportActionMessage(action, translate)} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE)) {
         return <ReportActionItemBasicMessage message={getDemotedFromWorkspaceMessage(translate, action)} />;

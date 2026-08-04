@@ -1426,7 +1426,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `no aprobado`,
         automaticallyForwarded: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
-        rejectedThisReport: 'rechazó',
+        rejectedThisReport: (comment?: string) => `rechazó este informe${comment ? `, dijo ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria personal.`,
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
@@ -1575,7 +1575,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reopenExportedReportConfirmation: ({connectionName}) =>
             `Este informe ya ha sido exportado a ${connectionName}. Cambiarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas reabrir este informe?`,
         reason: 'Razón',
-        retracted: 'retractado',
+        retracted: (memo?: string) => `retractado${memo ? `, dijo ${memo}` : ''}`,
         holdReasonRequired: 'Se requiere una razón para retener.',
         expenseWasPutOnHold: 'Este gasto está retenido',
         expenseOnHold: 'Este gasto está retenido. Revisa los comentarios para saber como proceder.',

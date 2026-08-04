@@ -1457,7 +1457,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `nicht genehmigt`,
         automaticallyForwarded: `über Genehmigung durch <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a>`,
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
-        rejectedThisReport: 'abgelehnt',
+        rejectedThisReport: (comment?: string) => `diesen Bericht abgelehnt${comment ? `, mit dem Vermerk ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1604,7 +1604,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Erkläre, was du vor der Genehmigung dieser Ausgabe benötigst.',
             other: 'Erkläre, was du vor der Genehmigung dieser Ausgaben benötigst.',
         }),
-        retracted: 'zurückgezogen',
+        retracted: (memo?: string) => `zurückgezogen${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         retract: 'Zurückziehen',
         reopened: 'wiedereröffnet',
         reopenReport: 'Bericht wieder öffnen',

@@ -1462,7 +1462,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `Non approuvé`,
         automaticallyForwarded: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
-        rejectedThisReport: 'rejeté',
+        rejectedThisReport: (comment?: string) => `a rejeté ce rapport${comment ? `, indiquant « ${comment} »` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1609,7 +1609,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: "Expliquez ce dont vous avez besoin avant d'approuver cette dépense.",
             other: "Expliquez ce dont vous avez besoin avant d'approuver ces dépenses.",
         }),
-        retracted: 'Retiré',
+        retracted: (memo?: string) => `Retiré${memo ? `, indiquant « ${memo} »` : ''}`,
         retract: 'Retirer',
         reopened: 'rouvert',
         reopenReport: 'Rouvrir la note de frais',

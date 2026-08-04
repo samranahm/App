@@ -1451,7 +1451,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `niezatwierdzone`,
         automaticallyForwarded: `zatwierdzone przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguły przestrzeni roboczej</a>`,
         forwarded: (memo?: string) => `zatwierdzono${memo ? `, wpisując ${memo}` : ''}`,
-        rejectedThisReport: 'odrzucono',
+        rejectedThisReport: (comment?: string) => `odrzucono ten raport${comment ? `, wpisując ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `rozpoczął(-ęła) płatność, ale czeka, aż ${submitterDisplayName} doda osobiste konto bankowe.`,
         adminCanceledRequest: 'anulowano płatność',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1594,7 +1594,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Wyjaśnij, czego potrzebujesz przed zatwierdzeniem tego wydatku.',
             other: 'Wyjaśnij, czego potrzebujesz przed zatwierdzeniem tych wydatków.',
         }),
-        retracted: 'wycofano',
+        retracted: (memo?: string) => `wycofano${memo ? `, wpisując ${memo}` : ''}`,
         retract: 'Wycofaj',
         reopened: 'ponownie otwarto',
         reopenReport: 'Otwórz ponownie raport',

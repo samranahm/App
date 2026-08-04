@@ -333,6 +333,22 @@ function getForwardedReportActionMessage(reportAction: OnyxEntry<ReportAction<ty
     return translate('iou.forwarded', originalMessage?.message);
 }
 
+function getRejectedReportActionMessage(reportAction: OnyxEntry<ReportAction>, translate: LocalizedTranslate): string {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER)) {
+        const comment = getOriginalMessage(reportAction)?.message?.trim();
+        return translate('iou.rejectedThisReport', comment || undefined);
+    }
+    return translate('iou.rejectedThisReport');
+}
+
+function getRetractedReportActionMessage(reportAction: OnyxEntry<ReportAction>, translate: LocalizedTranslate): string {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
+        const comment = getOriginalMessage(reportAction)?.message?.trim();
+        return translate('iou.retracted', comment || undefined);
+    }
+    return translate('iou.retracted');
+}
+
 function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED);
 }
@@ -2467,7 +2483,12 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
-        const message = translate('iou.retracted');
+        const message = getRetractedReportActionMessage(action, translate);
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
+    if (isRejectedAction(action)) {
+        const message = getRejectedReportActionMessage(action, translate);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -4977,6 +4998,8 @@ export {
     getRoomAvatarUpdatedMessage,
     didMessageMentionCurrentUser,
     getForwardedReportActionMessage,
+    getRejectedReportActionMessage,
+    getRetractedReportActionMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogUpdateEmployee,
     getPolicyChangeLogDeleteMemberMessage,

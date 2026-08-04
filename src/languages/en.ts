@@ -1534,7 +1534,7 @@ const translations = {
         unapproved: `unapproved`,
         automaticallyForwarded: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
-        rejectedThisReport: 'rejected',
+        rejectedThisReport: (comment?: string) => `rejected this report${comment ? `, saying ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1677,7 +1677,7 @@ const translations = {
             one: 'Explain what you need before approving this expense.',
             other: 'Explain what you need before approving these expenses.',
         }),
-        retracted: 'retracted',
+        retracted: (memo?: string) => `retracted${memo ? `, saying ${memo}` : ''}`,
         retract: 'Retract',
         reopened: 'reopened',
         reopenReport: 'Reopen report',

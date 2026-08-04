@@ -1455,7 +1455,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `niet-goedgekeurd`,
         automaticallyForwarded: `goedgekeurd via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimteregels</a>`,
         forwarded: (memo?: string) => `goedgekeurd${memo ? `, met de omschrijving ${memo}` : ''}`,
-        rejectedThisReport: 'afgekeurd',
+        rejectedThisReport: (comment?: string) => `dit rapport afgekeurd${comment ? `, met de omschrijving ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `is met de betaling begonnen, maar wacht tot ${submitterDisplayName} een persoonlijke bankrekening toevoegt.`,
         adminCanceledRequest: 'heeft de betaling geannuleerd',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1599,7 +1599,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Leg uit wat je nodig hebt voordat je deze uitgave goedkeurt.',
             other: 'Leg uit wat je nodig hebt voordat je deze uitgaven goedkeurt.',
         }),
-        retracted: 'ingetrokken',
+        retracted: (memo?: string) => `ingetrokken${memo ? `, met de omschrijving ${memo}` : ''}`,
         retract: 'Intrekken',
         reopened: 'heropend',
         reopenReport: 'Rapport heropenen',

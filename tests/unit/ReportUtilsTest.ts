@@ -2996,7 +2996,7 @@ describe('ReportUtils', () => {
                     };
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
-                    expect(reportName).toBe('rejected');
+                    expect(reportName).toBe('rejected this report');
                 });
 
                 test('should return rejected action name for REJECTED_TO_SUBMITTER', () => {
@@ -3016,7 +3016,7 @@ describe('ReportUtils', () => {
                     };
                     const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
 
-                    expect(reportName).toBe('rejected');
+                    expect(reportName).toBe('rejected this report');
                 });
 
                 test('should handle integration sync failed action', () => {

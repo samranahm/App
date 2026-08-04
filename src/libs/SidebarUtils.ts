@@ -75,6 +75,7 @@ import {
     getLastVisibleMessage,
     getMccGroupCategoryMessage,
     getMessageOfOldDotReportAction,
+    getRetractedReportActionMessage,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogAddEmployeeMessage,
@@ -1290,7 +1291,7 @@ function getOptionData({
         } else if (isPolicyCopyReportAction(lastAction)) {
             result.alternateText = Parser.htmlToText(getPolicyChangeLogCopyMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
-            result.alternateText = translate('iou.retracted');
+            result.alternateText = getRetractedReportActionMessage(lastAction, translate);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
             result.alternateText = translate('iou.reopened');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {

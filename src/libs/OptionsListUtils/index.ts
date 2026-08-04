@@ -47,6 +47,8 @@ import {
     getExportIntegrationLastMessageText,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardedReportActionMessage,
+    getRejectedReportActionMessage,
+    getRetractedReportActionMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getIOUReportIDFromReportActionPreview,
@@ -104,6 +106,7 @@ import {
     isPolicyCopyReportAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
+    isRejectedAction,
     isRenamedAction,
     isReportActionVisible,
     isReportPreviewAction,
@@ -865,8 +868,8 @@ function getLastMessageTextForReport({
         } else {
             lastMessageTextFromReport = getForwardedReportActionMessage(lastReportAction, translate);
         }
-    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-        lastMessageTextFromReport = translate('iou.rejectedThisReport');
+    } else if (isRejectedAction(lastReportAction)) {
+        lastMessageTextFromReport = getRejectedReportActionMessage(lastReportAction, translate);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
         lastMessageTextFromReport = translate('workspaceActions.upgradedWorkspace');
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
@@ -898,7 +901,7 @@ function getLastMessageTextForReport({
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR)) {
         lastMessageTextFromReport = getRoomAvatarUpdatedMessage(translate, lastReportAction);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
-        lastMessageTextFromReport = translate('iou.retracted');
+        lastMessageTextFromReport = getRetractedReportActionMessage(lastReportAction, translate);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.REOPENED)) {
         lastMessageTextFromReport = translate('iou.reopened');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {

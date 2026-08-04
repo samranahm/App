@@ -1439,7 +1439,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `未承認`,
         automaticallyForwarded: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>により承認済み`,
         forwarded: (memo?: string) => `承認済み${memo ? `、メモ: ${memo}` : ''}`,
-        rejectedThisReport: '却下しました',
+        rejectedThisReport: (comment?: string) => `このレポートを却下しました${comment ? `、メモ: ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName} が個人の銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1583,7 +1583,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'この経費を承認する前に必要なことを説明してください。',
             other: 'これらの経費を承認する前に必要なことを説明してください。',
         }),
-        retracted: '取り消し済み',
+        retracted: (memo?: string) => `取り消し済み${memo ? `、メモ: ${memo}` : ''}`,
         retract: '撤回',
         reopened: '再開しました',
         reopenReport: 'レポートを再開',

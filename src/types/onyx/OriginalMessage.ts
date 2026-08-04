@@ -1400,6 +1400,18 @@ type OriginalMessageForwarded = {
     message?: string;
 };
 
+/** Model of `rejected` / `rejectedToSubmitter` report action */
+type OriginalMessageRejected = {
+    /** Optional message explaining why the report was rejected */
+    message?: string;
+};
+
+/** Model of `retracted` report action */
+type OriginalMessageRetracted = {
+    /** Optional message explaining why the report was retracted */
+    message?: string;
+};
+
 /**
  *
  */
@@ -1724,8 +1736,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.HOLD]: never;
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
-    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: OriginalMessageRejected;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER]: OriginalMessageRejected;
     [CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED]: never;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;
@@ -1794,7 +1806,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
-    [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: OriginalMessageRetracted;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: OriginalMessageSmartScanFailed;
     [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;

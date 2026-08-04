@@ -1517,7 +1517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `μη εγκεκριμένο`,
         automaticallyForwarded: `εγκρίθηκε μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
         forwarded: (memo?: string) => `εγκρίθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
-        rejectedThisReport: 'απορρίφθηκε',
+        rejectedThisReport: (comment?: string) => `απέρριψε αυτήν την αναφορά${comment ? `, λέγοντας ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `ξεκίνησε την πληρωμή, αλλά περιμένει τον/την ${submitterDisplayName} να προσθέσει έναν προσωπικό τραπεζικό λογαριασμό.`,
         adminCanceledRequest: 'ακύρωσε την πληρωμή',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1663,7 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Εξηγήστε τι χρειάζεστε πριν εγκρίνετε αυτή την δαπάνη.',
             other: 'Εξηγήστε τι χρειάζεστε πριν εγκρίνετε αυτές τις δαπάνες.',
         }),
-        retracted: 'ανακλήθηκε',
+        retracted: (memo?: string) => `ανακλήθηκε${memo ? `, λέγοντας ${memo}` : ''}`,
         retract: 'Ανακαλέστε',
         reopened: 'άνοιξε ξανά',
         reopenReport: 'Ξανανοίξτε την αναφορά',

@@ -1456,7 +1456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unapproved: `non approvata`,
         automaticallyForwarded: `approvata tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>`,
         forwarded: (memo?: string) => `approvato${memo ? `, con nota: ${memo}` : ''}`,
-        rejectedThisReport: 'rifiutato',
+        rejectedThisReport: (comment?: string) => `ha rifiutato questo report${comment ? `, con nota: ${comment}` : ''}`,
         waitingOnBankAccount: (submitterDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario personale.`,
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
@@ -1602,7 +1602,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Spiega cosa ti serve prima di approvare questa spesa.',
             other: 'Spiega cosa ti serve prima di approvare queste spese.',
         }),
-        retracted: 'ritirato',
+        retracted: (memo?: string) => `ritirato${memo ? `, con nota: ${memo}` : ''}`,
         retract: 'Revoca',
         reopened: 'riaperto',
         reopenReport: 'Riapri rapporto',

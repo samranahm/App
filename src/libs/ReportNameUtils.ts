@@ -59,6 +59,8 @@ import {
     getExportIntegrationLastMessageText,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardedReportActionMessage,
+    getRejectedReportActionMessage,
+    getRetractedReportActionMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
@@ -537,10 +539,10 @@ function computeReportNameBasedOnReportAction(
         return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport?.ownerAccountID, convertToDisplayString);
     }
     if (isRejectedAction(parentReportAction)) {
-        return translate('iou.rejectedThisReport');
+        return getRejectedReportActionMessage(parentReportAction, translate);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
-        return translate('iou.retracted');
+        return getRetractedReportActionMessage(parentReportAction, translate);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
         return translate('iou.reopened');

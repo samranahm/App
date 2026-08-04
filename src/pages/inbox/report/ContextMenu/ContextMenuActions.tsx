@@ -54,6 +54,8 @@ import {
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardedReportActionMessage,
+    getRejectedReportActionMessage,
+    getRetractedReportActionMessage,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
@@ -1181,7 +1183,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         Clipboard.setString(getForwardedReportActionMessage(reportAction, translate));
                     }
                 } else if (isRejectedAction(reportAction)) {
-                    Clipboard.setString(translate('iou.rejectedThisReport'));
+                    Clipboard.setString(getRejectedReportActionMessage(reportAction, translate));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
                     const displayMessage = translate('workspaceActions.upgradedWorkspace');
                     Clipboard.setString(displayMessage);
@@ -1199,7 +1201,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
                     Clipboard.setString(translate('iou.reject.reportActions.markedAsResolved'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
-                    Clipboard.setString(translate('iou.retracted'));
+                    Clipboard.setString(getRetractedReportActionMessage(reportAction, translate));
                 } else if (isOldDotReportAction(reportAction)) {
                     const oldDotActionMessage = getMessageOfOldDotReportAction(translate, reportAction);
                     Clipboard.setString(oldDotActionMessage);
