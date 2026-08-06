@@ -15,6 +15,7 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
     getReimbursableTotal,
+    getReportStateAndStatusAfterCancelPayment,
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -535,16 +536,15 @@ function cancelPayment(
         expenseReport.currency ?? '',
         currentUserAccountIDParam,
     );
-    const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
-    const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
+    const {stateNum, statusNum} = getReportStateAndStatusAfterCancelPayment(policy);
 
-    // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
+    // For Done (CLOSED) with a connected bank account, the report status is CLOSED but the next step
     // should show "waiting to pay", so we use SUBMITTED as the predictedNextStatus which routes through the
     // correct next step path. Without a bank account, keep CLOSED which shows "no further action required".
+    // Outstanding restores already use SUBMITTED, so the bank-account override is a no-op there.
     const hasConnectedBankAccount = !!policy?.achAccount?.accountNumber;
-    const predictedNextStatus = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
+    const predictedNextStatus = statusNum === CONST.REPORT.STATUS_NUM.CLOSED && hasConnectedBankAccount ? CONST.REPORT.STATUS_NUM.SUBMITTED : statusNum;
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,

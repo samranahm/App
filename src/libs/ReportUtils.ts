@@ -7068,6 +7068,33 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, betas: OnyxEn
     };
 }
 
+function getReportStateAndStatusAfterCancelPayment(policy: OnyxEntry<Policy>): {
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+} {
+    const areApprovalsDisabled = isSubmitAndClose(policy);
+    const isInstantSubmit = isInstantSubmitEnabled(policy);
+
+    if (areApprovalsDisabled && isInstantSubmit) {
+        return {
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+    }
+
+    if (areApprovalsDisabled) {
+        return {
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+        };
+    }
+
+    return {
+        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+    };
+}
+
 /**
  * Builds an optimistic Expense report with a randomly generated reportID
  *
@@ -14262,6 +14289,7 @@ export {
     isWorkspaceTaskReport,
     isWorkspaceThread,
     isMoneyRequestReportEligibleForMerge,
+    getReportStateAndStatusAfterCancelPayment,
     getReportStatusTranslation,
     getReportStatusTooltipTranslation,
     getReportStatusColorStyle,
