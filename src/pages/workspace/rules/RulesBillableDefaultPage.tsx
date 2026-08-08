@@ -1,12 +1,9 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import Text from '@components/Text';
 
-import useConfirmModal from '@hooks/useConfirmModal';
-import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -15,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -25,8 +23,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import React, {useState} from 'react';
 
 type RulesBillableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
 
@@ -39,9 +36,7 @@ function RulesBillableDefaultPage({
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {environmentURL} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
-    const {showConfirmModal} = useConfirmModal();
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [draftBillable, setDraftBillable] = useState<boolean>();
@@ -81,29 +76,7 @@ function RulesBillableDefaultPage({
     };
 
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
-    const isTrackBillableToggleDisabled = !policy?.areTagsEnabled;
-    const shouldShowBillableModeList = !isRevamp || (isBillableTrackingEnabled && !isTrackBillableToggleDisabled);
-
-    const tagsPageLink = useMemo(() => {
-        if (policy?.areTagsEnabled) {
-            return `${environmentURL}/${ROUTES.WORKSPACE_TAGS.getRoute(policyID)}`;
-        }
-
-        return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
-    }, [environmentURL, policy?.areTagsEnabled, policyID]);
-
-    const promptEnableTagsToUnlockTrackBillable = async () => {
-        const {action} = await showConfirmModal({
-            title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
-            prompt: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt'),
-            confirmText: translate('common.ok'),
-            cancelText: translate('common.cancel'),
-        });
-        if (action !== ModalActions.CONFIRM) {
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
-    };
+    const shouldShowBillableModeList = !isRevamp || isBillableTrackingEnabled;
 
     return (
         <AccessOrNotFoundWrapper
@@ -120,9 +93,9 @@ function RulesBillableDefaultPage({
                     title={translate(isRevamp ? 'workspace.rules.generalTab.billableExpenses' : 'workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
-                <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, isRevamp ? styles.mb3 : styles.mb5]}>
-                    <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', tagsPageLink)} />
-                </View>
+                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, isRevamp ? styles.mb3 : styles.mb5]}>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.billableDefaultDescription')}</Text>
+                </Text>
                 {isRevamp && (
                     <ToggleSettingOptionRow
                         title={translate('workspace.tags.trackBillable')}
@@ -130,10 +103,6 @@ function RulesBillableDefaultPage({
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mh5, styles.mv4]}
                         isActive={isBillableTrackingEnabled}
-                        disabled={isTrackBillableToggleDisabled}
-                        showLockIcon={isTrackBillableToggleDisabled}
-                        disabledText={isTrackBillableToggleDisabled ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined}
-                        disabledAction={isTrackBillableToggleDisabled ? promptEnableTagsToUnlockTrackBillable : undefined}
                         pendingAction={getBillableExpensesPendingAction(policy)}
                         onToggle={() => toggleBillableExpenses(policy)}
                     />
@@ -143,6 +112,10 @@ function RulesBillableDefaultPage({
                         data={billableModes}
                         ListItem={SingleSelectListItem}
                         onSelectRow={(item) => {
+                            if (item.value && tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID))) {
+                                return;
+                            }
+
                             setDraftBillable(item.value);
                         }}
                         confirmButtonOptions={confirmButtonOptions}
