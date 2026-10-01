@@ -21,10 +21,13 @@ type LegalNameStepProps = SubPageProps & {
 function LegalNameStep({onNext, onMove, isEditing, enabledWhenOffline}: LegalNameStepProps) {
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
 
+    // Editing turns draft loading off, so seed from the draft here. Otherwise confirming an edit
+    // replaces the name the user just entered with the empty profile value.
     const getDefaultValues = () => ({
-        firstName: privatePersonalDetails?.legalFirstName ?? '',
-        lastName: privatePersonalDetails?.legalLastName ?? '',
+        firstName: personalBankAccountDraft?.legalFirstName ?? privatePersonalDetails?.legalFirstName ?? '',
+        lastName: personalBankAccountDraft?.legalLastName ?? privatePersonalDetails?.legalLastName ?? '',
     });
 
     const handleSubmit = usePersonalBankAccountDetailsFormSubmit({
