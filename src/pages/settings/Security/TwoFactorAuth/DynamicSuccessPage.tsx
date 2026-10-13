@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import AccountUtils from '@libs/AccountUtils';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import getPlatform from '@libs/getPlatform';
+import {clearShouldReturnToOldDotAfter2FA, isShouldReturnToOldDotAfter2FA} from '@libs/HybridApp';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -94,7 +95,9 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     };
 
     const onButtonPress = () => {
-        if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
+        const shouldReturnToOldDot = isShouldReturnToOldDotAfter2FA();
+        if (CONFIG.IS_HYBRID_APP && (shouldReturnToOldDot || (isClassicRedirectDismissed && !isClassicRedirectBlocked))) {
+            clearShouldReturnToOldDotAfter2FA();
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             return;
         }

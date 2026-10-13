@@ -11,7 +11,8 @@ import ROUTES from '@src/ROUTES';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 
-function withAgentAccessDenied(getComponent: () => React.ComponentType): () => React.ComponentType {
+function withAgentAccessDenied(getComponent: () => React.ComponentType, options: {allowWhileAgentUnknown?: boolean} = {}): () => React.ComponentType {
+    const {allowWhileAgentUnknown = false} = options;
     let ProtectedComponent: React.ComponentType | undefined;
     return () => {
         if (!ProtectedComponent) {
@@ -82,7 +83,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                     redirectAgentAway();
                 }, [isFocused, redirectAgentAway]);
 
-                if (isAgent === undefined || shouldRedirect) {
+                if ((isAgent === undefined && !allowWhileAgentUnknown) || shouldRedirect) {
                     return null;
                 }
                 if (shouldShowNotFoundPage) {

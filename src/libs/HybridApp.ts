@@ -22,6 +22,15 @@ let currentTryNewDot: OnyxEntry<TryNewDot>;
 let currentCredentials: OnyxEntry<Credentials>;
 let currentSession: OnyxEntry<Session>;
 let currentAccount: OnyxEntry<Account>;
+let shouldReturnToOldDotAfter2FA = false;
+
+function isShouldReturnToOldDotAfter2FA() {
+    return shouldReturnToOldDotAfter2FA;
+}
+
+function clearShouldReturnToOldDotAfter2FA() {
+    shouldReturnToOldDotAfter2FA = false;
+}
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
@@ -86,9 +95,16 @@ function signInToOldDotAndChooseExperience(
         return;
     }
 
-    if (!session?.authToken || !hybridApp?.useNewDotSignInPage) {
+    if (!session?.authToken) {
+        clearShouldReturnToOldDotAfter2FA();
         return;
     }
+
+    if (!hybridApp?.useNewDotSignInPage) {
+        return;
+    }
+
+    clearShouldReturnToOldDotAfter2FA();
 
     if (isAnonymousUser(session)) {
         setReadyToShowAuthScreens(true);
@@ -116,8 +132,14 @@ function signInToOldDotAndChooseExperience(
     });
 
     if (tryNewDot !== undefined) {
+        const shouldUseOldDot = shouldUseOldApp(tryNewDot);
+        const shouldReturnToOldDotForThisSignIn = shouldUseOldDot === true && account?.needsTwoFactorAuthSetup === true && account?.requiresTwoFactorAuth === false;
+        shouldReturnToOldDotAfter2FA = shouldReturnToOldDotForThisSignIn;
+
         setUseNewDotSignInPage(false).then(() => {
-            if (shouldUseOldApp(tryNewDot) && (!account?.needsTwoFactorAuthSetup || account?.requiresTwoFactorAuth)) {
+            if (shouldReturnToOldDotForThisSignIn) {
+                setReadyToShowAuthScreens(true);
+            } else if (shouldUseOldDot && (!account?.needsTwoFactorAuthSetup || account?.requiresTwoFactorAuth)) {
                 closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             } else {
                 setReadyToShowAuthScreens(true);
@@ -125,3 +147,5 @@ function signInToOldDotAndChooseExperience(
         });
     }
 }
+
+export {clearShouldReturnToOldDotAfter2FA, isShouldReturnToOldDotAfter2FA};

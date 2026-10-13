@@ -1328,12 +1328,19 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<TwoFactorAuthNavigatorParamList>({
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage').default),
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicVerifyPage').default),
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage').default, {
+        allowWhileAgentUnknown: true,
+    }),
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicVerifyPage').default, {
+        allowWhileAgentUnknown: true,
+    }),
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: withAgentAccessDenied(
         () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthVerifyAccountPage').default,
+        {allowWhileAgentUnknown: true},
     ),
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicSuccessPage').default),
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicSuccessPage').default, {
+        allowWhileAgentUnknown: true,
+    }),
     [SCREENS.TWO_FACTOR_AUTH.ENABLED]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/EnabledPage').default),
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default),
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default),
