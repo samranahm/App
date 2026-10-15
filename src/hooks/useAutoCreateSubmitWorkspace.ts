@@ -42,7 +42,6 @@ function useAutoCreateSubmitWorkspace() {
         hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
-        shouldUseNarrowLayout,
     } = useOnboardingWorkspaceCreationState();
     const delegateAccountID = useDelegateAccountID();
 
@@ -131,7 +130,7 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation);
         },
         [
             currentUserEmail,
@@ -151,7 +150,6 @@ function useAutoCreateSubmitWorkspace() {
             onboardingMessages,
             hasActiveAdminPolicies,
             hasOwnedPaidPolicy,
-            shouldUseNarrowLayout,
             conciergeChat,
             delegateAccountID,
         ],
