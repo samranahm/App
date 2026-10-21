@@ -1,6 +1,7 @@
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
+import {initBrowserAnimatedNavigationTracking} from '@libs/Navigation/helpers/browserAnimatedNavigation';
 import Visibility from '@libs/Visibility';
 
 import Config from '@src/CONFIG';
@@ -61,6 +62,9 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 export default function () {
     // Initialize Cache API
     CacheAPI.init();
+
+    // Has to run before the navigation container registers its own popstate listener
+    initBrowserAnimatedNavigationTracking();
 
     AppRegistry.runApplication(Config.APP_NAME, {
         rootTag: document.getElementById('root'),

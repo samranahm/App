@@ -1,5 +1,6 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {getIsBrowserAnimatedNavigation, subscribeToBrowserAnimatedNavigation} from '@libs/Navigation/helpers/browserAnimatedNavigation';
 import {isLiveWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import convertToWebNavigationOptions from '@libs/Navigation/PlatformStackNavigation/navigationOptions/convertToWebNavigationOptions';
 import screenLayout from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
@@ -17,7 +18,7 @@ import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navig
 
 import {StackRouter, useNavigationBuilder} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
-import React from 'react';
+import React, {useSyncExternalStore} from 'react';
 
 import wrapDescriptorsWithNonTopScreensBehavior from './wrapDescriptorsWithNonTopScreensBehavior';
 
@@ -30,6 +31,10 @@ type PlatformNavigatorImplProps<RouterOptions extends PlatformStackRouterOptions
     Effects?: CreatePlatformStackNavigatorComponentOptions<RouterOptions>['Effects'];
     displayName: string;
 };
+
+function withoutAnimation<T extends {options: StackNavigationOptions}>(descriptors: Record<string, T>): Record<string, T> {
+    return Object.fromEntries(Object.entries(descriptors).map(([key, descriptor]) => [key, {...descriptor, options: {...descriptor.options, animation: 'none'}}]));
+}
 
 function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>({
     id,
@@ -105,7 +110,10 @@ function PlatformNavigatorImpl<RouterOptions extends PlatformStackRouterOptions 
         }),
     };
 
-    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state, persistentScreens);
+    const isBrowserAnimatedNavigation = useSyncExternalStore(subscribeToBrowserAnimatedNavigation, getIsBrowserAnimatedNavigation);
+    const descriptorsForNavigation = isBrowserAnimatedNavigation ? withoutAnimation(descriptors) : descriptors;
+
+    const wrappedDescriptors = wrapDescriptorsWithNonTopScreensBehavior(descriptorsForNavigation, state, persistentScreens);
 
     const content = (
         <NavigationContent>
