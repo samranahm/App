@@ -32,7 +32,9 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (policy?.defaultBillable) {
         total.push(translate('workspace.rules.individualExpenseRules.billable'));
     }
-    if (policy?.prohibitedExpenses && Object.values(policy?.prohibitedExpenses).find((value) => value)) {
+    // Gambling and adult entertainment are prohibited by default, so only a deviation counts as a rule.
+    const defaultProhibitedExpenses: Record<string, boolean> = CONST.POLICY.DEFAULT_PROHIBITED_EXPENSES;
+    if (Object.entries(policy?.prohibitedExpenses ?? {}).some(([key, value]) => typeof value === 'boolean' && value !== defaultProhibitedExpenses[key])) {
         total.push(translate('workspace.rules.individualExpenseRules.prohibitedExpenses'));
     }
     if (policy?.eReceipts) {
@@ -56,13 +58,13 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (policy?.customRules) {
         total.push(translate('workspace.rules.customRules.title'));
     }
-    if (policy?.glCodes) {
+    // `glCodes` is only the plan entitlement granted on Control upgrade, so it counts once GL codes are shown on tags or categories.
+    if (policy?.glCodes && (policy?.showTagGLCodes || policy?.showCategoryGLCodes)) {
         total.push(translate('workspace.categories.glCode'));
     }
 
-    // defaultReimbursable defaults to true, so a flipped default or a hidden billable/reimbursable field
-    // (disabledFields) both indicate a non-default cash expense rule worth copying.
-    if (policy?.defaultReimbursable === false || Object.values(policy?.disabledFields ?? {}).some(Boolean)) {
+    // New workspaces start with disabledFields {defaultBillable: true, reimbursable: false}, so only a locked reimbursable field is non-default.
+    if (policy?.defaultReimbursable === false || policy?.disabledFields?.reimbursable === true) {
         total.push(translate('workspace.rules.individualExpenseRules.cashExpenseDefault'));
     }
 
