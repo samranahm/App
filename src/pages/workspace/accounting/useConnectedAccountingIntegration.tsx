@@ -267,6 +267,11 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
     const getIntegrationSpecificMenuItems = () => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
         const netSuiteSubsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
+        const netSuiteSubsidiary = policy?.connections?.netsuite?.options?.config?.subsidiary;
+        // A failed sync can leave NetSuite without a selected subsidiary (the error then asks the admin to pick one). This row is the only way into the selector,
+        // so keep it for that state. Without an error the empty row stays hidden so it doesn't show while the connection is syncing for the first time.
+        const shouldShowMissingNetSuiteSubsidiary = !netSuiteSubsidiary && shouldShowSynchronizationError && netSuiteSubsidiaryList.length > 0;
+        const canChangeNetSuiteSubsidiary = canWriteAccounting && (netSuiteSubsidiaryList.length > 1 || shouldShowMissingNetSuiteSubsidiary);
         const rilletSubsidiaryList = policy?.connections?.rillet?.data?.subsidiaries;
         const dualEntryCompanyList = policy?.connections?.dualEntry?.data?.companies;
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
@@ -303,25 +308,24 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                               : undefined,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                return !policy?.connections?.netsuite?.options?.config?.subsidiary
+                return !netSuiteSubsidiary && !shouldShowMissingNetSuiteSubsidiary
                     ? {}
                     : {
                           description: translate('workspace.netsuite.subsidiary'),
                           iconRight: icons.ArrowRight,
-                          title: policy?.connections?.netsuite?.options?.config?.subsidiary ?? '',
+                          title: shouldShowMissingNetSuiteSubsidiary ? translate('common.select') : (netSuiteSubsidiary ?? ''),
                           wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
-                          shouldShowRightIcon: canWriteAccounting && netSuiteSubsidiaryList?.length > 1,
+                          shouldShowRightIcon: canChangeNetSuiteSubsidiary,
                           shouldShowDescriptionOnTop: true,
                           interactive: canWriteAccounting,
                           pendingAction: policy?.connections?.netsuite?.options?.config?.pendingFields?.subsidiary,
                           brickRoadIndicator: policy?.connections?.netsuite?.options?.config?.errorFields?.subsidiary ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                          onPress:
-                              canWriteAccounting && netSuiteSubsidiaryList?.length > 1
-                                  ? () => {
-                                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
-                                    }
-                                  : undefined,
+                          onPress: canChangeNetSuiteSubsidiary
+                              ? () => {
+                                    Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR.getRoute(policyID));
+                                }
+                              : undefined,
                       };
             case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                 return !sageIntacctEntityList.length
@@ -478,7 +482,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         }
     };
     const integrationSpecificMenuItems = getIntegrationSpecificMenuItems();
-    const shouldKeepIntegrationSpecificMenuItemOnSyncError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
     const getConnectionDetails = () => {
         if (!connectedIntegration || !policyID) {
@@ -572,9 +575,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             : [];
 
         const settingsMenuItems: MenuItemData[] = [
-            ...(isEmptyObject(integrationSpecificMenuItems) || (shouldShowSynchronizationError && !shouldKeepIntegrationSpecificMenuItemOnSyncError) || !hasAccountingConnection
-                ? []
-                : [integrationSpecificMenuItems]),
+            ...(isEmptyObject(integrationSpecificMenuItems) || hasAuthError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
             ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
         ];
         return {icon: integrationData?.icon, title: integrationData?.title, connectionMessage, settingsMenuItems};
