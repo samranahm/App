@@ -24,6 +24,7 @@ let mockHasFocus = true;
 let mockIsFocused = true;
 let mockReferrer: string | undefined;
 let mockIsInPreloadedTab = false;
+let mockIsReportActionsLoaded = false;
 let mockNotificationPreference: string = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
 let mockLHNUnreadState = 'unread';
 const CURRENT_USER_ACCOUNT_ID = 123;
@@ -61,6 +62,11 @@ jest.mock('@libs/SidebarUtils', () => ({
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({accountID: CURRENT_USER_ACCOUNT_ID, login: 'test@example.com'}),
+}));
+
+jest.mock('@hooks/useIsReportActionsLoaded', () => ({
+    __esModule: true,
+    default: () => mockIsReportActionsLoaded,
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -129,6 +135,7 @@ describe('useMarkAsRead', () => {
         mockIsFocused = true;
         mockReferrer = undefined;
         mockIsInPreloadedTab = false;
+        mockIsReportActionsLoaded = false;
         mockNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
         mockLHNUnreadState = 'unread';
     });
@@ -329,6 +336,54 @@ describe('useMarkAsRead', () => {
         rerender({report: reportWithNewMessage, actions: [incomingAction]});
 
         expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('holds the initial mark-as-read for an unfocused expense report until it is opened', () => {
+        // Given an unread expense report remounted behind Settings during a cache reset
+        mockIsFocused = false;
+        mockIsReportActionsLoaded = true;
+
+        // When the report loads while its screen is not focused
+        const {rerender} = renderMarkAsRead({shouldRequireScreenFocus: true});
+
+        // Then it must remain unread until the user actually opens it
+        expect(readNewestAction).not.toHaveBeenCalled();
+        mockIsFocused = true;
+        rerender(undefined);
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
+    });
+
+    it('marks a new thread comment as read only after returning to the expense report', () => {
+        // Given a read expense report that remains mounted behind another screen
+        mockIsUnread = false;
+        mockIsReportActionsLoaded = true;
+        const initialProps: {thread: OnyxEntry<OnyxTypes.Report>} = {thread: undefined};
+        const {rerender} = renderHook(
+            (props: {thread: OnyxEntry<OnyxTypes.Report>}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: REPORT,
+                    transactionThreadReport: props.thread,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: false,
+                    shouldRequireScreenFocus: true,
+                }),
+            {initialProps},
+        );
+        mockIsFocused = false;
+        rerender({thread: undefined});
+
+        // When an unread thread comment arrives while the report is unfocused
+        mockIsUnread = true;
+        const thread = {...REPORT, reportID: '2', lastVisibleActionCreated: '2023-01-01 12:00:00.000'};
+        rerender({thread});
+
+        // Then it stays unread until the report regains focus
+        expect(readNewestAction).not.toHaveBeenCalled();
+        mockIsFocused = true;
+        rerender({thread});
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
     });
 
     it('does not mark the report as read when the window regains focus while newer actions are still unloaded', () => {

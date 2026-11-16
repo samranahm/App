@@ -381,6 +381,21 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
+    it('requires screen focus before automatically reading a single-expense report', () => {
+        // Given a single-expense report rendered by the standard actions list
+        const expenseReport = {...mockReport, type: CONST.REPORT.TYPE.IOU, transactionCount: 1};
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockUseOnyx.mockImplementation((key, options) =>
+            key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}` ? [expenseReport, {status: 'loaded'}] : getMockOnyxValue(key, options),
+        );
+
+        // When the list mounts
+        renderReportActionsList();
+
+        // Then the read hook must wait until the expense screen is focused
+        expect(mockUseMarkAsRead).toHaveBeenCalledWith(expect.objectContaining({shouldRequireScreenFocus: true}));
+    });
+
     it('leaves counter copy subscriptions in the counter wrapper while forwarding report and navigation props', () => {
         // Given loaded list content with its counter mocked, copy-only reads must not remain in the parent or model hooks.
         const reportWithPolicy = {...mockReport, policyID: 'counter-policy'};

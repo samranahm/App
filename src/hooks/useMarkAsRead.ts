@@ -93,7 +93,7 @@ type UseMarkAsReadParams = {
     /** Identifies the list surface consuming the hook, so unrelated surfaces don't share previous-report tracking. */
     scopeKey?: string;
 
-    /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
+    /** Skips marking as read while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
     shouldRequireScreenFocus?: boolean;
 };
 
@@ -127,6 +127,7 @@ function useMarkAsRead({
     // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
     const isHiddenFromUser = useIsReportOutOfSight();
     const isHiddenPreMount = useIsHiddenWideTabPreMount();
+    const hasRequiredScreenFocus = !shouldRequireScreenFocus || isFocused;
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -220,8 +221,8 @@ function useMarkAsRead({
     }, [reportID, isHiddenFromUser]);
 
     useEffect(() => {
-        // Skip while preloaded without latching, so the effect re-runs and marks read once the tab is focused.
-        if (isHiddenFromUser) {
+        // Skip while preloaded or unfocused without latching, so the effect re-runs and marks read once the tab is focused.
+        if (isHiddenFromUser || !hasRequiredScreenFocus) {
             return;
         }
 
@@ -242,7 +243,7 @@ function useMarkAsRead({
         // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
         // mark the report as read long after mount.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isHiddenFromUser, isReportUnreadValue, reportID, isReportActionsLoaded]);
+    }, [isHiddenFromUser, hasRequiredScreenFocus, isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
 
@@ -260,7 +261,7 @@ function useMarkAsRead({
             return;
         }
 
-        if (shouldRequireScreenFocus && !isFocused) {
+        if (!hasRequiredScreenFocus) {
             return;
         }
 
@@ -289,7 +290,7 @@ function useMarkAsRead({
     // skipped read.
     useEffect(() => {
         handleReportChangeMarkAsRead();
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded, isHiddenFromUser]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded, isHiddenFromUser, hasRequiredScreenFocus]);
 
     // isFocused is passed as an arg because the Effect Event closure can be stale (stuck true) on frozen screens,
     // re-marking a just-unread report as read on report switch

@@ -19,7 +19,7 @@ import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
-import {isArchivedReport} from '@libs/ReportUtils';
+import {isArchivedReport, isMoneyRequestReport} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -147,6 +147,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         sortedVisibleReportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
+        shouldRequireScreenFocus: isMoneyRequestReport(report),
     });
 
     const reportActionsListData = useReportActionsListData({
